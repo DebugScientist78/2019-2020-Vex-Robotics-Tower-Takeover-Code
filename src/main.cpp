@@ -110,7 +110,7 @@ void opcontrol() {
 	pros::Motor arm(7);
 	//pros::Motor tilter(8);
 
-	int left_y, left_x, right_x, fwd, rot, side;
+	int fwd, rot, side;
 
 	SlewArgs *MySlewArgs_leftOne = new SlewArgs();
 	SlewArgs *MySlewArgs_leftTwo = new SlewArgs();
@@ -131,14 +131,10 @@ void opcontrol() {
 	//tilter_Args->motor = &tilter;
 
 	while (true) {
-		left_y = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y);
-		left_x = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X);
-
-		right_x = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X);
-		//pros::Task SlewLeftOne(TaskSlew,(void*)MySlewArgs_leftOne,"SlewLeftOne");
-		//pros::Task SlewLeftTwo(TaskSlew,(void*)MySlewArgs_leftTwo,"SlewLeftTwo");
-		//pros::Task SlewRightOne(TaskSlew,(void*)MySlewArgs_rightOne,"SlewRightOne");
-		//pros::Task SlewRightTwo(TaskSlew,(void*)MySlewArgs_rightTwo,"SlewRightTwo");
+		pros::Task SlewLeftOne(TaskSlew,(void*)MySlewArgs_leftOne,"SlewLeftOne");
+		pros::Task SlewLeftTwo(TaskSlew,(void*)MySlewArgs_leftTwo,"SlewLeftTwo");
+		pros::Task SlewRightOne(TaskSlew,(void*)MySlewArgs_rightOne,"SlewRightOne");
+		pros::Task SlewRightTwo(TaskSlew,(void*)MySlewArgs_rightTwo,"SlewRightTwo");
 		//pros::Task SlewArm(TaskSlew,(void*)arm_Args,"Arm task");
 		//pros::Task SlewIntakeLeft(TaskSlew,(void*)intakeLeft_Args,"Left Intake Slew");
 		//pros::Task SlewIntakeRight(TaskSlew,(void*)intakeRight_Args,"Right Intake Slew");
@@ -149,18 +145,24 @@ void opcontrol() {
 		  /********************/
 		 /* Driver Contorls  */
 		/********************/
-		if (std::abs(left_y) > DEADBAND && std::abs(right_x) < DEADBAND && std::abs(left_x < DEADBAND)) {
-			fwd = left_y;
+		if (std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y)) > DEADBAND &&
+		 std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X)) < DEADBAND && 
+		 std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X) < DEADBAND)) {
+			fwd = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y);
 		} else {
 			fwd = 0;
 		}
-		if (std::abs(left_x) > DEADBAND && std::abs(left_y) < DEADBAND && std::abs(right_x) < DEADBAND) {
-			side = left_x;
+		if (std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X)) > DEADBAND && 
+		 std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y)) < DEADBAND && 
+		 std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X)) < DEADBAND) {
+			side = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X);;
 		} else {
 			side = 0;
 		}
-		if (std::abs(right_x) > DEADBAND && std::abs(left_x) < DEADBAND && std::abs(left_y) < DEADBAND) {
-			rot = right_x;
+		if (std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X)) > DEADBAND && 
+		 std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X)) < DEADBAND && 
+		 std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y)) < DEADBAND) {
+			rot = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X);
 		}
 		else {
 			rot = 0;
@@ -187,10 +189,10 @@ void opcontrol() {
 		else {
 			tilter_Args->target = 0;
 		}*/
-		SlewRate(fwd+rot+side,&leftOne);
-		SlewRate(fwd+rot-side,&leftTwo);
-		SlewRate(fwd-rot-side,&rightOne);
-		SlewRate(fwd-rot+side,&rightTwo);
-		pros::delay(10);
+		MySlewArgs_leftOne->target=fwd+rot+side;
+		MySlewArgs_leftTwo->target=fwd+rot-side;
+		MySlewArgs_rightOne->target=fwd-rot-side;
+		MySlewArgs_rightTwo->target=fwd-rot+side;
+		pros::delay(5);
 	}
 }
