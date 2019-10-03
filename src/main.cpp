@@ -193,6 +193,6 @@ void opcontrol() {
 		MySlewArgs_leftTwo->target=fwd+rot-side;
 		MySlewArgs_rightOne->target=fwd-rot-side;
 		MySlewArgs_rightTwo->target=fwd-rot+side;
-		pros::delay(5);
+		pros::delay(20);
 	}
 }
