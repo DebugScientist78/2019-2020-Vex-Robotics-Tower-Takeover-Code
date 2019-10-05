@@ -1,5 +1,7 @@
 #include "main.h"
 #include "controls.h"
+const int increment = 20;
+const int delta_time = 5;
 
 pros::motor_pid_s_t SetPID(double gainP, double gainI, double gainD, int port) {
     pros::motor_pid_s_t pid = pros::Motor::convert_pid(0,gainP,gainI,gainD);
@@ -20,13 +22,13 @@ void SlewRate(int target,pros::Motor *motor) {
             std::cout << "V V V V V V V V V " << std::endl;
             while (speed < target) {
                 if(!motor->is_over_current()) {
-                    speed += 5; 
+                    speed += increment; 
                     motor->move(speed);
                 }
                 std::printf("voltage of Motor: %dmV \n",motor->get_voltage());
                 std::printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
                 std::cout << "Current of Motor: " << motor->get_current_draw() << "mA" << std::endl;
-                pros::delay(10);
+                pros::delay(delta_time);
             }
             std::cout << "-----END OF TEST ONE------" << std::endl;
             std::cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ " << std::endl;
@@ -38,12 +40,12 @@ void SlewRate(int target,pros::Motor *motor) {
             //std::cout << "V V V V V V V V V " << std::endl;
             while (speed > target) {
                 if (!motor->is_over_current()) {
-                    speed -= 5;
+                    speed -= increment;
                     motor->move(speed);
                 }
                 //std::printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
                 //std::cout << "Current of Motor: " << motor->get_current_draw() << "mA" << std::endl;
-                pros::delay(5);
+                pros::delay(delta_time);
             }
             //std::cout << "-----END OF TEST TWO------" << std::endl;
             //std::cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ " << std::endl;
@@ -61,13 +63,13 @@ void SlewRate(int target,pros::Motor *motor) {
                 std::cout << "V V V V V V V V V V " << std::endl;
                 while (speed > target) {
                     if (!motor->is_over_current()) {
-                        speed -= 5;
+                        speed -= increment;
                         motor->move(speed);
                     }
                     std::printf("voltage of Motor: %dmV \n",motor->get_voltage());
                     std::printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
                     std::cout << "Current of Motor: " << motor->get_current_draw() << "mA" << std::endl;
-                    pros::delay(10);
+                    pros::delay(delta_time);
                 }
                 if (std::abs(std::round(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED)) < 20) motor->move(0);
                 std::cout << "-----END OF TEST THREE------" << std::endl;
@@ -79,12 +81,12 @@ void SlewRate(int target,pros::Motor *motor) {
                 std::cout << "V V V V V V V V V " << std::endl;
                 while (speed < target) {
                     if (!motor->is_over_current()) {
-                        speed += 5;
+                        speed += increment;
                         motor->move(speed);
                     }
                     //std::printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
                     //std::cout << "Current of Motor: " << motor->get_current_draw() << "mA" << std::endl;
-                    pros::delay(10);
+                    pros::delay(delta_time);
                 }
                 if (std::abs(std::round(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED)) < 20) motor->move(0);
                 //std::cout << "-----END OF TEST FOUR------" << std::endl;

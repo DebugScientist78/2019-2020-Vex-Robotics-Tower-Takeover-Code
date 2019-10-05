@@ -187,10 +187,10 @@ void opcontrol() {
 		else {
 			tilter_Args->target = 0;
 		}*/
-		SlewRate(fwd+rot+side,&leftOne);
-		SlewRate(fwd+rot-side,&leftTwo);
-		SlewRate(fwd-rot-side,&rightOne);
-		SlewRate(fwd-rot+side,&rightTwo);
+		SlewRate(fwd+rot-side,&leftOne);
+		SlewRate(fwd-rot+side,&rightOne);
+		SlewRate(fwd+rot+side,&leftTwo);
+		SlewRate(fwd-rot-side,&rightTwo);
 		pros::delay(10);
 	}
 }
