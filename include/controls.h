@@ -4,6 +4,7 @@
 #define baseSpeed 60
 #define RATIO_FOR_mV_TO_SPEED 0.010583
 #define DEADBAND 50
+#define POTENTIOMETER_DEADBAND 5
 
 extern uint8_t prevTime;
 

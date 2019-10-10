@@ -19,7 +19,7 @@ void initialize() {
 	pros::ADIGyro gyro(1);
 
 	pros::Motor intakeLeft(5,false);
-	pros::Motor intakeRight(6,false);
+	pros::Motor intakeRight(6,true);
 
 	pros::Motor arm(7,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
 	//pros::Motor tilter(8,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
@@ -108,9 +108,15 @@ void opcontrol() {
 	pros::Motor intakeRight(6);
 
 	pros::Motor arm(7);
+	pros::ADIPotentiometer armPos(2);
 	//pros::Motor tilter(8);
 
 	int left_y, left_x, right_x, fwd, rot, side;
+	const int UPRIGHT = 90;
+	const int SLANTED = 45;
+	int goal,dire;
+	short intakeSpeed;
+
 
 	SlewArgs *MySlewArgs_leftOne = new SlewArgs();
 	SlewArgs *MySlewArgs_leftTwo = new SlewArgs();
@@ -144,7 +150,7 @@ void opcontrol() {
 		//pros::Task SlewIntakeRight(TaskSlew,(void*)intakeRight_Args,"Right Intake Slew");
 		//pros::Task SlewAdjust(TaskUpdate,(void*)tilter_Args,"Tilter Slew");
 
-		//std::cout << "analog right x axis: " << right << std::endl;
+		std::cout << "potentiometer value: " << armPos.get_value() << std::endl;
 		
 		  /********************/
 		 /* Driver Contorls  */
@@ -166,31 +172,34 @@ void opcontrol() {
 			rot = 0;
 		}
 	
-		/*if (master.get_digital(DIGITAL_R1) == 1 && master.get_digital(DIGITAL_R2) == 0) {
-			prevTime = pros::millis();
-			arm_Args->target = 127;
-
+		if (master.get_digital(DIGITAL_R1) == 1 && master.get_digital(DIGITAL_R2) == 0) {
+			goal = UPRIGHT;
 		}
 		else if (master.get_digital(DIGITAL_R2) == 1 && master.get_digital(DIGITAL_R1) == 0) {
-			arm_Args->target = -127;
+			goal = SLANTED;
 		}
-		else {
-			arm_Args->target = 0;
-		}*/
 
-		/*if (master.get_digital(DIGITAL_L1) ==1 && master.get_digital(DIGITAL_L2) ==0) {
-			tilter_Args->target = 127;
+		if (master.get_digital(DIGITAL_L1) ==1 && master.get_digital(DIGITAL_L2) ==0) {
+			intakeSpeed = 127;
 		}
 		else if (master.get_digital(DIGITAL_L2) ==1 && master.get_digital(DIGITAL_L1) ==0) {
-			tilter_Args->target = -127;
+			intakeSpeed = -127;
 		}
 		else {
-			tilter_Args->target = 0;
-		}*/
+			intakeSpeed= 0;
+		}
+
+		if(armPos.get_value() < (goal-POTENTIOMETER_DEADBAND)) {dire=1;}
+		else if(armPos.get_value() > (goal+POTENTIOMETER_DEADBAND)) {dire=-1;}
+		else {dire=0;}
+
 		SlewRate(fwd+rot-side,&leftOne);
 		SlewRate(fwd-rot+side,&rightOne);
 		SlewRate(fwd+rot+side,&leftTwo);
 		SlewRate(fwd-rot-side,&rightTwo);
+		SlewRate(90*dire,&arm);
+		SlewRate(intakeSpeed,&intakeLeft);
+		SlewRate(intakeSpeed,&intakeRight);
 		pros::delay(10);
 	}
 }
