@@ -37,24 +37,6 @@ void nitialize() {
 
 	pros::Motor arm(7,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
 	pros::Motor tilter(8,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
-	SlewArgs *MySlewArgs_leftOne = new SlewArgs();
-    SlewArgs *MySlewArgs_leftTwo = new SlewArgs();
-    SlewArgs *MySlewArgs_rightOne = new SlewArgs();
-    SlewArgs *MySlewArgs_rightTwo = new SlewArgs();
-    SlewArgs *arm_Args = new SlewArgs();
-    SlewArgs *intakeRight_Args = new SlewArgs();
-    SlewArgs *intakeLeft_Args = new SlewArgs();
-    SlewArgs *tilter_Args = new SlewArgs();
-
-    MySlewArgs_leftOne->motor = &leftOne;
-    MySlewArgs_leftOne->motor = &leftOne;
-    MySlewArgs_rightOne->motor = &rightOne;
-    MySlewArgs_rightTwo->motor = &rightTwo;
-    arm_Args->motor = &arm;
-    intakeLeft_Args->motor = &intakeLeft;
-    intakeRight_Args->motor = &intakeRight;
-    tilter_Args->motor = &tilter;
-	//TaskHandle Slew = taskCreate(SlewRate,TASK_STACK_DEPTH_DEFAULT,NULL,TASK_PRIORITY_DEFAULT);
 }
 
 /**

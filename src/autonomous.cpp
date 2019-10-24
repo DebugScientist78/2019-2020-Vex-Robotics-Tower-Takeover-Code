@@ -213,7 +213,7 @@ void pid_strafe(int targetDistance, bool rightDir) {
  */
 void Routine() {
     using namespace okapi;
-    auto intake = AsyncControllerFactory::posIntegrated({6,-7});
+    auto intake = AsyncControllerFactory::velIntegrated({6,-7});
     auto drive = okapi::ChassisControllerFactory::create(
                                                     {1,2},
                                                     {-3,-4},

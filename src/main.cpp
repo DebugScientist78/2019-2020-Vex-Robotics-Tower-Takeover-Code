@@ -118,39 +118,11 @@ void opcontrol() {
 	const int SLANTED = 45;
 	int goal,dire;
 	short intakeSpeed;
-
-
-	SlewArgs *MySlewArgs_leftOne = new SlewArgs();
-	SlewArgs *MySlewArgs_leftTwo = new SlewArgs();
-	SlewArgs *MySlewArgs_rightOne = new SlewArgs();
-	SlewArgs *MySlewArgs_rightTwo = new SlewArgs();
-	SlewArgs *arm_Args = new SlewArgs();
-	SlewArgs *intakeRight_Args = new SlewArgs();
-	SlewArgs *intakeLeft_Args = new SlewArgs();
-	//SlewArgs *tilter_Args = new SlewArgs();
-
-	MySlewArgs_leftOne->motor = &leftOne;
-	MySlewArgs_leftTwo->motor = &leftTwo;
-	MySlewArgs_rightOne->motor = &rightOne;
-	MySlewArgs_rightTwo->motor = &rightTwo;
-	arm_Args->motor = &arm;
-	intakeLeft_Args->motor = &intakeLeft;
-	intakeRight_Args->motor = &intakeRight;
-	//tilter_Args->motor = &tilter;
-	DisplaySetup();
 	while (true) {
 		left_y = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y);
 		left_x = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X);
 
 		right_x = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X);
-		//pros::Task SlewLeftOne(TaskSlew,(void*)MySlewArgs_leftOne,"SlewLeftOne");
-		//pros::Task SlewLeftTwo(TaskSlew,(void*)MySlewArgs_leftTwo,"SlewLeftTwo");
-		//pros::Task SlewRightOne(TaskSlew,(void*)MySlewArgs_rightOne,"SlewRightOne");
-		//pros::Task SlewRightTwo(TaskSlew,(void*)MySlewArgs_rightTwo,"SlewRightTwo");
-		//pros::Task SlewArm(TaskSlew,(void*)arm_Args,"Arm task");
-		//pros::Task SlewIntakeLeft(TaskSlew,(void*)intakeLeft_Args,"Left Intake Slew");
-		//pros::Task SlewIntakeRight(TaskSlew,(void*)intakeRight_Args,"Right Intake Slew");
-		//pros::Task SlewAdjust(TaskUpdate,(void*)tilter_Args,"Tilter Slew");
 
 		//std::cout << "potentiometer value: " << armPos.get_value() << std::endl;
 		
