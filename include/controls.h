@@ -7,6 +7,7 @@
 #define POTENTIOMETER_DEADBAND 5
 
 extern uint8_t prevTime;
+extern const int targets[2];
 
 typedef struct {
     int target;

@@ -9,19 +9,20 @@
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-    pros::Motor leftOne(1,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
+    pros::Motor leftOne(1,MOTOR_GEARSET_18,false,MOTOR_ENCODER_DEGREES);
     okapi::IntegratedEncoder leftEnc(leftOne);
 	pros::Motor leftTwo(2,MOTOR_GEARSET_18,false);
-    pros::Motor rightOne(3,MOTOR_GEARSET_18,true,MOTOR_ENCODER_COUNTS);
+    pros::Motor rightOne(3,MOTOR_GEARSET_18,true,MOTOR_ENCODER_DEGREES);
     okapi::IntegratedEncoder rightEnc(rightOne);
 	pros::Motor rightTwo(4,MOTOR_GEARSET_18,true);
 
 	pros::ADIGyro gyro(1);
 
-	pros::Motor intakeLeft(5,false);
-	pros::Motor intakeRight(6,true);
+	pros::Motor intakeLeft(5,MOTOR_GEARSET_18,false);
+	pros::Motor intakeRight(6,MOTOR_GEARSET_18,true);
 
 	pros::Motor arm(7,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
+	arm.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	//pros::Motor tilter(8,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
 	//DisplaySetup();
 	/*SlewArgs *MySlewArgs_leftOne = new SlewArgs();
@@ -44,6 +45,7 @@ void initialize() {
 	pros::Task SlewLeftTwo(TaskSlew,(void*)MySlewArgs_leftTwo,"SlewLeftTwo");
 	pros::Task SlewRightOne(TaskSlew,(void*)MySlewArgs_rightOne,"SlewRightOne");
 	pros::Task SlewRightTwo(TaskSlew,(void*)MySlewArgs_rightTwo,"SlewRightTwo");*/
+	//DisplaySetup();
 }
 
 
@@ -66,7 +68,7 @@ void disabled() {}
  * starts.
  */
 void competition_initialize() {
-	DisplaySetup();
+	//DisplaySetup();
 }
 
 /**
@@ -135,7 +137,7 @@ void opcontrol() {
 	intakeLeft_Args->motor = &intakeLeft;
 	intakeRight_Args->motor = &intakeRight;
 	//tilter_Args->motor = &tilter;
-
+	DisplaySetup();
 	while (true) {
 		left_y = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y);
 		left_x = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X);
@@ -150,7 +152,7 @@ void opcontrol() {
 		//pros::Task SlewIntakeRight(TaskSlew,(void*)intakeRight_Args,"Right Intake Slew");
 		//pros::Task SlewAdjust(TaskUpdate,(void*)tilter_Args,"Tilter Slew");
 
-		std::cout << "potentiometer value: " << armPos.get_value() << std::endl;
+		//std::cout << "potentiometer value: " << armPos.get_value() << std::endl;
 		
 		  /********************/
 		 /* Driver Contorls  */

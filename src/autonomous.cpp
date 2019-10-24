@@ -2,6 +2,7 @@
 #include "auton.h"
 #include "controls.h"
 
+
 /*
 -- Regular Auton
 1 = red left
@@ -191,6 +192,14 @@ void pid_Turn(int degrees) {
     SlewRate(0,&rightTwo);
 }
 
+void pid_strafe(int targetDistance, bool rightDir) {
+    if (rightDir) {
+
+    } else {
+        
+    }
+}
+
 /**
  * Runs the user autonomous code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -203,9 +212,23 @@ void pid_Turn(int degrees) {
  * from where it left off.
  */
 void Routine() {
+    using namespace okapi;
+    auto intake = AsyncControllerFactory::posIntegrated({6,-7});
+    auto drive = okapi::ChassisControllerFactory::create(
+                                                    {1,2},
+                                                    {-3,-4},
+                                                    okapi::AbstractMotor::gearset::green,
+                                                    {4_in,8.5_in});
     
-    pros::lcd::set_text(4,"auton reached "+std::to_string(autoMode));
+    auto adjuster = okapi::AsyncControllerFactory::posIntegrated(7);
+
     if (autoMode == 1) {
+        
+        intake.setTarget(1000);
+        drive.moveDistance(1_ft);
+        intake.waitUntilSettled();
+        drive.turnAngle(90_deg);
+    
     } else if (autoMode == 2) {
 
     } else if (autoMode == 3) {
