@@ -114,8 +114,8 @@ void opcontrol() {
 	//pros::Motor tilter(8);
 
 	int left_y, left_x, right_x, fwd, rot, side;
-	const int UPRIGHT = 90;
-	const int SLANTED = 45;
+	static const int UPRIGHT = 90;
+	static const int SLANTED = 45;
 	int goal,dire;
 	short intakeSpeed;
 	while (true) {
@@ -130,17 +130,17 @@ void opcontrol() {
 		 /* Driver Contorls  */
 		/********************/
 		if (std::abs(left_y) > DEADBAND && std::abs(right_x) < DEADBAND && std::abs(left_x < DEADBAND)) {
-			fwd = left_y;
+			fwd = LogSpeed(left_y);
 		} else {
 			fwd = 0;
 		}
 		if (std::abs(left_x) > DEADBAND && std::abs(left_y) < DEADBAND && std::abs(right_x) < DEADBAND) {
-			side = left_x;
+			side = LogSpeed(left_x);
 		} else {
 			side = 0;
 		}
 		if (std::abs(right_x) > DEADBAND && std::abs(left_x) < DEADBAND && std::abs(left_y) < DEADBAND) {
-			rot = right_x;
+			rot = LogSpeed(right_x);
 		}
 		else {
 			rot = 0;

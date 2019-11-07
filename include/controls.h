@@ -1,13 +1,12 @@
 #ifndef _CONTROLS_H_
 #define _CONTROLS_H_
 
-#define baseSpeed 60
-#define RATIO_FOR_mV_TO_SPEED 0.010583
-#define DEADBAND 50
-#define POTENTIOMETER_DEADBAND 5
+static const int baseSpeed = 60;
+static const float RATIO_FOR_mV_TO_SPEED = 0.010583;
+static const int DEADBAND = 50;
+static const int POTENTIOMETER_DEADBAND = 5;
 
-extern uint8_t prevTime;
-extern const int targets[2];
+static const bool DEBUG = false;
 
 typedef struct {
     int target;
@@ -31,7 +30,8 @@ extern okapi::IntegratedEncoder RightEnc;*/
 pros::motor_pid_s_t SetPID(double gainP, double gainI, double gainD, int port);
 void SlewRate(int target, pros::Motor *motor); 
 void TaskSlew(void* args);
-void TaskUpdate(void* stringArg);
 void Maincontrol();
 void Routine();
+int LogSpeed(int rawSpeed);
+void MsgTerminal(std::string msg);
 #endif

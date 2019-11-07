@@ -70,7 +70,7 @@ void Maincontrol() {
 		pros::Task SlewArm(TaskSlew,(void*)arm_Args,TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"Arm task");
 		pros::Task SlewIntakeLeft(TaskSlew,(void*)intakeLeft_Args,TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"Left Intake Slew");
 		pros::Task SlewIntakeRight(TaskSlew,(void*)intakeRight_Args,TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"Right Intake Slew");
-		pros::Task SlewAdjust(TaskUpdate,(void*)tilter_Args,TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"Tilter Slew");
+		//pros::Task SlewAdjust(TaskUpdate,(void*)tilter_Args,TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"Tilter Slew");
 
 		//std::cout << "analog right x axis: " << right << std::endl;
 		
