@@ -118,6 +118,18 @@ void opcontrol() {
 	static const int SLANTED = 45;
 	int goal,dire;
 	short intakeSpeed;
+
+	leftOne.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	leftTwo.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	rightOne.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	rightTwo.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+
+	intakeLeft.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+
+	arm.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+	std::uint32_t now = pros::millis();
+
 	while (true) {
 		left_y = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y);
 		left_x = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X);
@@ -174,6 +186,6 @@ void opcontrol() {
 		SlewRate(90*dire,&arm);
 		SlewRate(intakeSpeed,&intakeLeft);
 		SlewRate(intakeSpeed,&intakeRight);
-		pros::delay(10);
+		pros::Task::delay_until(&now,20);
 	}
 }

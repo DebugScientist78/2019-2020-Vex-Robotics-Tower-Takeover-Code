@@ -1,7 +1,7 @@
 #include "main.h"
 #include "controls.h"
-const int increment = 20;
-const int delta_time = 5;
+static const int increment = 20;
+static const int delta_time = 20;
 
 pros::motor_pid_s_t SetPID(double gainP, double gainI, double gainD, int port) {
     pros::motor_pid_s_t pid = pros::Motor::convert_pid(0,gainP,gainI,gainD);
@@ -10,6 +10,7 @@ pros::motor_pid_s_t SetPID(double gainP, double gainI, double gainD, int port) {
 
 void SlewRate(int target,pros::Motor *motor) {
     using namespace std;
+    uint32_t now = pros::millis();
     //if (motor->get_direction() == EACCES) return;
     int speed = int(round(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
     //cout << speed << endl;
@@ -29,7 +30,7 @@ void SlewRate(int target,pros::Motor *motor) {
                 if (DEBUG) printf("voltage of Motor: %dmV \n",motor->get_voltage());
                 if (DEBUG) printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
                 if (DEBUG) cout << "Current of Motor: " << motor->get_current_draw() << "mA" << endl;
-                pros::delay(delta_time);
+                pros::Task::delay_until(&now,delta_time);
             }
             if (DEBUG) cout << "-----END OF TEST ONE------" << endl;
             if (DEBUG) cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ " << endl;
@@ -46,7 +47,7 @@ void SlewRate(int target,pros::Motor *motor) {
                 }
                 if (DEBUG) printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
                 if (DEBUG) cout << "Current of Motor: " << motor->get_current_draw() << "mA" << endl;
-                pros::delay(delta_time);
+                pros::Task::delay_until(&now,delta_time);
             }
             if (DEBUG) cout << "-----END OF TEST TWO------" << endl;
             if (DEBUG) cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ " << endl;
@@ -70,7 +71,7 @@ void SlewRate(int target,pros::Motor *motor) {
                     if (DEBUG) printf("voltage of Motor: %dmV \n",motor->get_voltage());
                     if (DEBUG) printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
                     if (DEBUG) cout << "Current of Motor: " << motor->get_current_draw() << "mA" << endl;
-                    pros::delay(delta_time);
+                    pros::Task::delay_until(&now,delta_time);
                 }
                 if (abs(round(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED)) < 20) motor->move(0);
                 if (DEBUG) cout << "-----END OF TEST THREE------" << endl;
@@ -87,7 +88,7 @@ void SlewRate(int target,pros::Motor *motor) {
                     }
                     if (DEBUG) printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
                     if (DEBUG) cout << "Current of Motor: " << motor->get_current_draw() << "mA" << endl;
-                    pros::delay(delta_time);
+                    pros::Task::delay_until(&now,delta_time);
                 }
                 if (abs(round(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED)) < 20) motor->move(0);
                 if (DEBUG) cout << "-----END OF TEST FOUR------" << endl;
@@ -192,9 +193,9 @@ void TaskSlew(void* args) {
 
 int LogSpeed(int rawSpeed) {
     if (rawSpeed >= 0) {
-        return round((rawSpeed*rawSpeed)/127.0f);
+        return int(roundf((rawSpeed*rawSpeed)/127.0f));
     } else {
-        return round((rawSpeed*rawSpeed)/-127.0f);
+        return int(roundf((rawSpeed*rawSpeed)/-127.0f));
     }
 }
 
