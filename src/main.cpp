@@ -48,9 +48,6 @@ void initialize() {
 	//DisplaySetup();
 }
 
-
-// haha ver foony
-
 /**
  * Runs while the robot is in the disabled state of Field Management System or
  * the VEX Competition Switch, following either autonomous or opcontrol. When
@@ -101,10 +98,10 @@ void autonomous() {
  */
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor leftOne(1);
-	pros::Motor leftTwo(2);
-	pros::Motor rightOne(3);
-	pros::Motor rightTwo(4);
+	pros::Motor leftFront(1);
+	pros::Motor leftBack(2);
+	pros::Motor rightFront(3);
+	pros::Motor rightBack(4);
 
 	pros::Motor intakeLeft(5);
 	pros::Motor intakeRight(6);
@@ -119,10 +116,10 @@ void opcontrol() {
 	int goal,dire;
 	short intakeSpeed;
 
-	leftOne.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	leftTwo.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	rightOne.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	rightTwo.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	rightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
 	intakeLeft.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 
@@ -136,7 +133,7 @@ void opcontrol() {
 
 		right_x = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X);
 
-		//std::cout << "potentiometer value: " << armPos.get_value() << std::endl;
+		if (DEBUG) std::cout << "potentiometer value: " << armPos.get_value() << std::endl;
 		
 		  /********************/
 		 /* Driver Contorls  */
@@ -179,13 +176,14 @@ void opcontrol() {
 		else if(armPos.get_value() > (goal+POTENTIOMETER_DEADBAND)) {dire=-1;}
 		else {dire=0;}
 
-		SlewRate(fwd+rot-side,&leftOne);
-		SlewRate(fwd-rot+side,&rightOne);
-		SlewRate(fwd+rot+side,&leftTwo);
-		SlewRate(fwd-rot-side,&rightTwo);
+		SlewRate(fwd+rot+side,&leftFront);
+		SlewRate(fwd-rot-side,&rightFront);
+		SlewRate(fwd+rot-side,&leftBack);
+		SlewRate(fwd-rot+side,&rightBack);
 		SlewRate(90*dire,&arm);
 		SlewRate(intakeSpeed,&intakeLeft);
 		SlewRate(intakeSpeed,&intakeRight);
 		pros::Task::delay_until(&now,20);
 	}
+	CleanPointers();
 }

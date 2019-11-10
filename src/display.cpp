@@ -4,23 +4,23 @@
 
 lv_obj_t * btnRedOne;
 lv_obj_t * btnRedOne__label;
-lv_style_t * btnRedOne__style;
+lv_style_t btnRedOne__style;
 
 lv_obj_t * btnRedTwo;
 lv_obj_t * btnRedTwo__label;
-lv_style_t * btnRedTwo__style;
+lv_style_t btnRedTwo__style;
 
 lv_obj_t * btnBluOne;
 lv_obj_t * btnBluOne__label;
-lv_style_t * btnBluOne__style;
+lv_style_t btnBluOne__style;
 
 lv_obj_t * btnBluTwo;
 lv_obj_t * btnBluTwo__label;
-lv_style_t * btnBluTwo__style;
+lv_style_t btnBluTwo__style;
 
 lv_obj_t * confirmBtn;
 lv_obj_t * confirmBtn__label;
-lv_style_t * confirmBtn__style;
+lv_style_t confirmBtn__style;
 
 lv_obj_t * wallpaper;
 lv_style_t wallpaper_style;
@@ -140,7 +140,7 @@ void DisplaySetup() {
                                       LV_COLOR_MAKE(102,0,0),
                                       LV_COLOR_BLACK,
                                       btnRedOne);
-    setBtnStyle(btnRedOne__style,btnRedOne);
+    setBtnStyle(&btnRedOne__style,btnRedOne);
     btnRedTwo__style =  createBtnStyle(&lv_style_plain,
                                       LV_COLOR_MAKE(255,51,51),
                                       LV_COLOR_MAKE(204,0,0),
@@ -149,7 +149,7 @@ void DisplaySetup() {
                                       LV_COLOR_MAKE(102,0,0),
                                       LV_COLOR_BLACK,
                                       btnRedTwo);
-    setBtnStyle(btnRedTwo__style,btnRedTwo);
+    setBtnStyle(&btnRedTwo__style,btnRedTwo);
     btnBluOne__style = createBtnStyle(&lv_style_plain,
                                       LV_COLOR_MAKE(51,153,255),
                                       LV_COLOR_MAKE(0,102,204),
@@ -158,7 +158,7 @@ void DisplaySetup() {
                                       LV_COLOR_MAKE(0,51,102),
                                       LV_COLOR_BLACK,
                                       btnBluOne);
-    setBtnStyle(btnBluOne__style,btnBluOne);
+    setBtnStyle(&btnBluOne__style,btnBluOne);
     btnBluTwo__style = createBtnStyle(&lv_style_plain,
                                       LV_COLOR_MAKE(51,153,255),
                                       LV_COLOR_MAKE(0,102,204),
@@ -167,7 +167,7 @@ void DisplaySetup() {
                                       LV_COLOR_MAKE(0,51,102),
                                       LV_COLOR_BLACK,
                                       btnBluTwo);
-    setBtnStyle(btnBluTwo__style,btnBluTwo);
+    setBtnStyle(&btnBluTwo__style,btnBluTwo);
     confirmBtn__style = createBtnStyle(&lv_style_plain,
                                        LV_COLOR_MAKE(0,255,128),
                                        LV_COLOR_MAKE(0,153,76),
@@ -176,7 +176,7 @@ void DisplaySetup() {
                                        LV_COLOR_MAKE(0,102,51),
                                        LV_COLOR_BLACK,
                                        confirmBtn);
-    setBtnStyle(confirmBtn__style,confirmBtn);
+    setBtnStyle(&confirmBtn__style,confirmBtn);
 
     Description = lv_obj_create(wallpaper,NULL);
     lv_obj_set_width(Description,300);
@@ -189,3 +189,21 @@ void DisplaySetup() {
     lv_label_set_text(Description_label,"Nothing selected");
     lv_obj_align(Description_label, NULL, LV_ALIGN_CENTER, 0, 0);
 }
+
+
+void CleanPointers() {
+    lv_obj_del(wallpaper);
+    wallpaper = nullptr;
+    btnRedOne = nullptr;
+    btnRedTwo = nullptr;
+    btnBluOne = nullptr;
+    btnBluTwo = nullptr;
+    Description = nullptr;
+
+    btnRedOne__label = nullptr;
+    btnRedTwo__label = nullptr;
+    btnBluOne__label = nullptr;
+    btnBluTwo__label = nullptr;
+    Description_label = nullptr;
+}
+
