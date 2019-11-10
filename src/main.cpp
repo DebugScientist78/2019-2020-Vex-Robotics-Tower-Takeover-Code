@@ -1,5 +1,6 @@
 #include "main.h"
 #include "controls.h"
+#include "MotorTasks.h"
 #include "display.h"
 
 /*
@@ -24,7 +25,7 @@ void initialize() {
 	pros::Motor arm(7,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
 	//pros::Motor tilter(8,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
 	//DisplaySetup();
-	/*SlewArgs *MySlewArgs_leftOne = new SlewArgs();
+	SlewArgs *MySlewArgs_leftOne = new SlewArgs();
 	SlewArgs *MySlewArgs_leftTwo = new SlewArgs();
 	SlewArgs *MySlewArgs_rightOne = new SlewArgs();
 	SlewArgs *MySlewArgs_rightTwo = new SlewArgs();
@@ -43,11 +44,8 @@ void initialize() {
 	pros::Task SlewLeftOne(TaskSlew,(void*)MySlewArgs_leftOne,"SlewLeftOne");
 	pros::Task SlewLeftTwo(TaskSlew,(void*)MySlewArgs_leftTwo,"SlewLeftTwo");
 	pros::Task SlewRightOne(TaskSlew,(void*)MySlewArgs_rightOne,"SlewRightOne");
-	pros::Task SlewRightTwo(TaskSlew,(void*)MySlewArgs_rightTwo,"SlewRightTwo");*/
+	pros::Task SlewRightTwo(TaskSlew,(void*)MySlewArgs_rightTwo,"SlewRightTwo");
 }
-
-
-// haha ver foony
 
 /**
  * Runs while the robot is in the disabled state of Field Management System or
@@ -112,33 +110,11 @@ void opcontrol() {
 
 	int fwd, rot, side;
 
-	SlewArgs *MySlewArgs_leftOne = new SlewArgs();
-	SlewArgs *MySlewArgs_leftTwo = new SlewArgs();
-	SlewArgs *MySlewArgs_rightOne = new SlewArgs();
-	SlewArgs *MySlewArgs_rightTwo = new SlewArgs();
-	SlewArgs *arm_Args = new SlewArgs();
-	SlewArgs *intakeRight_Args = new SlewArgs();
-	SlewArgs *intakeLeft_Args = new SlewArgs();
-	//SlewArgs *tilter_Args = new SlewArgs();
-
-	MySlewArgs_leftOne->motor = &leftOne;
-	MySlewArgs_leftTwo->motor = &leftTwo;
-	MySlewArgs_rightOne->motor = &rightOne;
-	MySlewArgs_rightTwo->motor = &rightTwo;
-	arm_Args->motor = &arm;
-	intakeLeft_Args->motor = &intakeLeft;
-	intakeRight_Args->motor = &intakeRight;
-	//tilter_Args->motor = &tilter;
+	DriveReference *driveParams = new DriveReference();
+	IntakeReference *intakeParams = new IntakeReference();
 
 	while (true) {
-		pros::Task SlewLeftOne(TaskSlew,(void*)MySlewArgs_leftOne,"SlewLeftOne");
-		pros::Task SlewLeftTwo(TaskSlew,(void*)MySlewArgs_leftTwo,"SlewLeftTwo");
-		pros::Task SlewRightOne(TaskSlew,(void*)MySlewArgs_rightOne,"SlewRightOne");
-		pros::Task SlewRightTwo(TaskSlew,(void*)MySlewArgs_rightTwo,"SlewRightTwo");
-		//pros::Task SlewArm(TaskSlew,(void*)arm_Args,"Arm task");
-		//pros::Task SlewIntakeLeft(TaskSlew,(void*)intakeLeft_Args,"Left Intake Slew");
-		//pros::Task SlewIntakeRight(TaskSlew,(void*)intakeRight_Args,"Right Intake Slew");
-		//pros::Task SlewAdjust(TaskUpdate,(void*)tilter_Args,"Tilter Slew");
+		pros::Task driveTask(TaskDrive,(void*)driveParams,"Drive Task");
 
 		//std::cout << "analog right x axis: " << right << std::endl;
 		
@@ -147,10 +123,17 @@ void opcontrol() {
 		/********************/
 		if (std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y)) > DEADBAND &&
 		 std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X)) < DEADBAND && 
-		 std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X) < DEADBAND)) {
-			fwd = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y);
+		 std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X) < DEADBAND))
+		{
+			driveParams->mtrTarget[0]= master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+			driveParams->mtrTarget[1]= master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+			driveParams->mtrTarget[2]= master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+			driveParams->mtrTarget[3]= master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y); 
 		} else {
-			fwd = 0;
+			driveParams->mtrTarget[0]= 0;
+			driveParams->mtrTarget[1]= 0;
+			driveParams->mtrTarget[2]= 0;
+			driveParams->mtrTarget[3]= 0; 
 		}
 		if (std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X)) > DEADBAND && 
 		 std::abs(master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y)) < DEADBAND && 
@@ -189,10 +172,7 @@ void opcontrol() {
 		else {
 			tilter_Args->target = 0;
 		}*/
-		MySlewArgs_leftOne->target=fwd+rot+side;
-		MySlewArgs_leftTwo->target=fwd+rot-side;
-		MySlewArgs_rightOne->target=fwd-rot-side;
-		MySlewArgs_rightTwo->target=fwd-rot+side;
+
 		pros::delay(20);
 	}
 }

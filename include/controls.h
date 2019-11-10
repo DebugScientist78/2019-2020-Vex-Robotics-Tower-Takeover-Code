@@ -1,11 +1,11 @@
 #ifndef _CONTROLS_H_
 #define _CONTROLS_H_
 
-#define baseSpeed 60
-#define RATIO_FOR_mV_TO_SPEED 0.010583
-#define DEADBAND 50
+static const int baseSpeed = 60;
+static const float RATIO_FOR_mV_TO_SPEED = 0.010583f;
+static const int DEADBAND = 50;
 
-extern uint8_t prevTime;
+static const bool DEBUG = false;
 
 typedef struct {
     int target;
