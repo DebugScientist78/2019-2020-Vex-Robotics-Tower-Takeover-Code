@@ -40,6 +40,8 @@
  * You should add more #includes here
  */
 #include "controls.h"
+#include "display.h"
+#include "auton.h"
 #include "okapi/api.hpp"
 #include "pros/api_legacy.h"
 

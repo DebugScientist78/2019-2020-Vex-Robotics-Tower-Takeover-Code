@@ -1,19 +1,7 @@
 #include "main.h"
-#include "auton.h"
-#include "controls.h"
+#include "globals.hpp"
 
 
-/*
--- Regular Auton
-1 = red left
-2 = red top
-3 = blu right
-4 = blu top
-
--- Skills
-5 = skills, On red left
-*/
-int autoMode; 
   /*******************************************/
  /*   Motors and Sensor local Initlization  */
 /*******************************************/

@@ -9,29 +9,29 @@
 
 extern lv_obj_t * btnRedOne;
 extern lv_obj_t * btnRedOne__label;
-extern lv_style_t btnRedOne__style;
+extern lv_style_t * btnRedOne__style;
 
 extern lv_obj_t * btnRedTwo;
 extern lv_obj_t * btnRedTwo__label;
-extern lv_style_t btnRedTwo__style;
+extern lv_style_t * btnRedTwo__style;
 
 extern lv_obj_t * btnBluOne;
 extern lv_obj_t * btnBluOne__label;
-extern lv_style_t btnBluOne__style;
+extern lv_style_t * btnBluOne__style;
 
 extern lv_obj_t * btnBluTwo;
 extern lv_obj_t * btnBluTwo__label;
-extern lv_style_t btnBluTwo__style;
+extern lv_style_t * btnBluTwo__style;
 
 extern lv_obj_t * confirmBtn;
 extern lv_obj_t * confirmBtn__label;
-extern lv_style_t confirmBtn__style;
+extern lv_style_t * confirmBtn__style;
 
 extern lv_obj_t * wallpaper;
-extern lv_style_t wallpaper_style;
+extern lv_style_t * wallpaper_style;
 
 extern lv_obj_t * Description;
-extern lv_style_t Description_style;
+extern lv_style_t * Description_style;
 extern lv_obj_t * Description_label;
 
   /*********************/

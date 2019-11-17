@@ -1,32 +1,33 @@
 #include "main.h"
 #include "auton.h"
+#include "globals.hpp"
 #include "display.h"
 
 lv_obj_t * btnRedOne;
 lv_obj_t * btnRedOne__label;
-lv_style_t btnRedOne__style;
+lv_style_t * btnRedOne__style;
 
 lv_obj_t * btnRedTwo;
 lv_obj_t * btnRedTwo__label;
-lv_style_t btnRedTwo__style;
+lv_style_t * btnRedTwo__style;
 
 lv_obj_t * btnBluOne;
 lv_obj_t * btnBluOne__label;
-lv_style_t btnBluOne__style;
+lv_style_t * btnBluOne__style;
 
 lv_obj_t * btnBluTwo;
 lv_obj_t * btnBluTwo__label;
-lv_style_t btnBluTwo__style;
+lv_style_t * btnBluTwo__style;
 
 lv_obj_t * confirmBtn;
 lv_obj_t * confirmBtn__label;
-lv_style_t confirmBtn__style;
+lv_style_t * confirmBtn__style;
 
 lv_obj_t * wallpaper;
-lv_style_t wallpaper_style;
+lv_style_t * wallpaper_style;
 
 lv_obj_t * Description;
-lv_style_t Description_style;
+lv_style_t * Description_style;
 lv_obj_t * Description_label;
 
 lv_style_t * createBtnStyle(lv_style_t * copy, lv_color_t rel, lv_color_t pr,
@@ -89,21 +90,21 @@ lv_obj_t * createBtn(lv_obj_t * parent, lv_coord_t x, lv_coord_t y, lv_coord_t w
 
 static lv_res_t BtnPressed(lv_obj_t * btn) {
     uint8_t id = lv_obj_get_free_num(btn);
-    char out[22];
+    char out[24];
     if (id == 0) {
-        autoMode = 1;
+        autoMode = RED_LEFT_GOAL;
         sprintf(out,"Red One Selected: %d",autoMode);
         lv_label_set_text(Description_label,out);
     } else if (id == 1) {
-        autoMode = 2;
+        autoMode = RED_RIGHT_GOAL;
         sprintf(out,"Red Two Selected: %d",autoMode);
         lv_label_set_text(Description_label,out);
     } else if (id == 2) {
-        autoMode = 3;
+        autoMode = BLUE_LEFT_GOAL;
         sprintf(out,"Blue One Selected: %d",autoMode);
         lv_label_set_text(Description_label,out);    
     } else if (id == 3) {
-        autoMode = 4;
+        autoMode = BLUE_RIGHT_GOAL;
         sprintf(out,"Blue Two Selected: %d",autoMode);
         lv_label_set_text(Description_label,out);
     }
@@ -112,10 +113,10 @@ static lv_res_t BtnPressed(lv_obj_t * btn) {
 
 void DisplaySetup() {
     wallpaper = lv_obj_create(NULL,NULL);
-    lv_style_copy(&wallpaper_style,&lv_style_plain);
-     wallpaper_style.body.main_color = LV_COLOR_GRAY;
-    wallpaper_style.body.grad_color = LV_COLOR_GRAY;
-    lv_obj_set_style(wallpaper,&wallpaper_style);
+    lv_style_copy(wallpaper_style,&lv_style_plain);
+    wallpaper_style->body.main_color = LV_COLOR_GRAY;
+    wallpaper_style->body.grad_color = LV_COLOR_GRAY;
+    lv_obj_set_style(wallpaper,wallpaper_style);
     lv_scr_load(wallpaper);
 
     btnRedOne = createBtn(wallpaper,0,0,120,60,0,"Red One");
@@ -140,7 +141,7 @@ void DisplaySetup() {
                                       LV_COLOR_MAKE(102,0,0),
                                       LV_COLOR_BLACK,
                                       btnRedOne);
-    setBtnStyle(&btnRedOne__style,btnRedOne);
+    setBtnStyle(btnRedOne__style,btnRedOne);
     btnRedTwo__style =  createBtnStyle(&lv_style_plain,
                                       LV_COLOR_MAKE(255,51,51),
                                       LV_COLOR_MAKE(204,0,0),
@@ -149,7 +150,7 @@ void DisplaySetup() {
                                       LV_COLOR_MAKE(102,0,0),
                                       LV_COLOR_BLACK,
                                       btnRedTwo);
-    setBtnStyle(&btnRedTwo__style,btnRedTwo);
+    setBtnStyle(btnRedTwo__style,btnRedTwo);
     btnBluOne__style = createBtnStyle(&lv_style_plain,
                                       LV_COLOR_MAKE(51,153,255),
                                       LV_COLOR_MAKE(0,102,204),
@@ -158,7 +159,7 @@ void DisplaySetup() {
                                       LV_COLOR_MAKE(0,51,102),
                                       LV_COLOR_BLACK,
                                       btnBluOne);
-    setBtnStyle(&btnBluOne__style,btnBluOne);
+    setBtnStyle(btnBluOne__style,btnBluOne);
     btnBluTwo__style = createBtnStyle(&lv_style_plain,
                                       LV_COLOR_MAKE(51,153,255),
                                       LV_COLOR_MAKE(0,102,204),
@@ -167,7 +168,7 @@ void DisplaySetup() {
                                       LV_COLOR_MAKE(0,51,102),
                                       LV_COLOR_BLACK,
                                       btnBluTwo);
-    setBtnStyle(&btnBluTwo__style,btnBluTwo);
+    setBtnStyle(btnBluTwo__style,btnBluTwo);
     confirmBtn__style = createBtnStyle(&lv_style_plain,
                                        LV_COLOR_MAKE(0,255,128),
                                        LV_COLOR_MAKE(0,153,76),
@@ -176,18 +177,61 @@ void DisplaySetup() {
                                        LV_COLOR_MAKE(0,102,51),
                                        LV_COLOR_BLACK,
                                        confirmBtn);
-    setBtnStyle(&confirmBtn__style,confirmBtn);
+    setBtnStyle(confirmBtn__style,confirmBtn);
 
     Description = lv_obj_create(wallpaper,NULL);
     lv_obj_set_width(Description,300);
-    lv_style_copy(&Description_style,&lv_style_plain);
-    Description_style.body.grad_color = LV_COLOR_GRAY;
-    Description_style.body.main_color = LV_COLOR_GRAY;
+    lv_style_copy(Description_style,&lv_style_plain);
+    Description_style->body.grad_color = LV_COLOR_GRAY;
+    Description_style->body.main_color = LV_COLOR_GRAY;
     lv_obj_set_pos(Description,90,80);
 
     Description_label = lv_label_create(Description,NULL);
     lv_label_set_text(Description_label,"Nothing selected");
     lv_obj_align(Description_label, NULL, LV_ALIGN_CENTER, 0, 0);
+}
+
+void AutonSelect() {
+    autoMode = 0;
+    bool mainQuit = false;
+    std::string setting;
+    std::uint32_t now = pros::millis();
+    while (mainQuit == false) {
+        if (autoMode != 0) {
+            switch (autoMode)
+            {
+            case RED_LEFT_GOAL:
+                setting = "You have chosen: Red Left Goal";
+                break;
+            case RED_RIGHT_GOAL:
+                setting += "You have chosen: Red Right Goal";
+                break;
+            case BLUE_LEFT_GOAL:
+                setting += "You have chosen: Blue Left Goal"; 
+                break;
+            case BLUE_RIGHT_GOAL:
+                setting += "You have chosen: Blue Right Goal";
+                break;
+            
+            default:
+                break;
+            }
+            master.set_text(1,1,setting.c_str());
+            while (true) {
+                if (master.get_digital(pros::E_CONTROLLER_DIGITAL_A) == 1) {
+                    mainQuit = true;
+                    break;
+                } else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_B) == 1) {
+                    autoMode = 0;
+                    break;
+                }
+                now = pros::millis();
+                pros::Task::delay_until(&now,10);
+            }
+        }
+        now = pros::millis();
+        pros::Task::delay_until(&now,50);
+    }
 }
 
 
@@ -205,5 +249,7 @@ void CleanPointers() {
     btnBluOne__label = nullptr;
     btnBluTwo__label = nullptr;
     Description_label = nullptr;
+
+    delete btnRedOne__style;
 }
 

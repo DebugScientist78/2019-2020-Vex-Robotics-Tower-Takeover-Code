@@ -1,205 +1,74 @@
 #include "main.h"
+#include "globals.hpp"
 #include "controls.h"
 static const int increment = 20;
 static const int delta_time = 20;
 
-pros::motor_pid_s_t SetPID(double gainP, double gainI, double gainD, int port) {
-    pros::motor_pid_s_t pid = pros::Motor::convert_pid(0,gainP,gainI,gainD);
-    return pid;
+int SignOf(int x) {
+    if (x>0) return 1;
+    if (x<0) return -1;
+    return 0;
 }
 
-void SlewRate(int target,pros::Motor *motor) {
+void MtrAccel(pros::Motor* mtr,int speed) {
     using namespace std;
     uint32_t now = pros::millis();
-    //if (motor->get_direction() == EACCES) return;
-    int speed = int(round(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
-    //cout << speed << endl;
-    //cout << target << endl;
-    //prevent needless calls when joystick is held
-    if (speed == target || abs(abs(target)-abs(speed)) < 10) return;
-
-    if (abs(speed) < abs(target)) {//checks if going cw
-        if (motor->get_direction() == 1 || target > 0) {
-            if (DEBUG) cout << "-----TEST ONE-----" << endl;
-            if (DEBUG) cout << "V V V V V V V V V " << endl;
-            while (speed < target) {
-                if(!motor->is_over_current()) {
-                    speed += increment; 
-                    motor->move(speed);
-                }
-                if (DEBUG) printf("voltage of Motor: %dmV \n",motor->get_voltage());
-                if (DEBUG) printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
-                if (DEBUG) cout << "Current of Motor: " << motor->get_current_draw() << "mA" << endl;
-                pros::Task::delay_until(&now,delta_time);
-            }
-            if (DEBUG) cout << "-----END OF TEST ONE------" << endl;
-            if (DEBUG) cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ " << endl;
-            if (speed > 127) motor->move(127);
-            return;
+    double ratio = 127/mtr->get_voltage_limit();
+    int deltaSpd = 0;
+    int currentSpd = int(floor(mtr->get_voltage()*ratio));
+    while (currentSpd != speed) {
+        currentSpd = int(floor(mtr->get_voltage()*ratio));
+        deltaSpd = speed - currentSpd;
+        if (abs(deltaSpd) > increment) {
+            currentSpd += increment * SignOf(deltaSpd);
+        } else {
+            currentSpd = speed;
         }
-        else {//ccw
-            if (DEBUG) cout << "-----TEST TWO-----" << endl;
-            if (DEBUG) cout << "V V V V V V V V V " << endl;
-            while (speed > target) {
-                if (!motor->is_over_current()) {
-                    speed -= increment;
-                    motor->move(speed);
-                }
-                if (DEBUG) printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
-                if (DEBUG) cout << "Current of Motor: " << motor->get_current_draw() << "mA" << endl;
-                pros::Task::delay_until(&now,delta_time);
-            }
-            if (DEBUG) cout << "-----END OF TEST TWO------" << endl;
-            if (DEBUG) cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ " << endl;
-            if (speed < -127) motor->move(-127);
-            return;
-        }
+        mtr->move(currentSpd);
+        pros::Task::delay_until(&now,delta_time);
     }
-    else {
-        if (abs(speed) < 30) {
-            motor->move(0);
-            return;
-        } else {  
-            if (speed > 0) {
-                if (DEBUG) cout << "-----TEST THREE-----" << endl;
-                if (DEBUG) cout << "V V V V V V V V V V " << endl;
-                while (speed > target) {
-                    if (!motor->is_over_current()) {
-                        speed -= increment;
-                        motor->move(speed);
-                    }
-                    if (DEBUG) printf("voltage of Motor: %dmV \n",motor->get_voltage());
-                    if (DEBUG) printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
-                    if (DEBUG) cout << "Current of Motor: " << motor->get_current_draw() << "mA" << endl;
-                    pros::Task::delay_until(&now,delta_time);
-                }
-                if (abs(round(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED)) < 20) motor->move(0);
-                if (DEBUG) cout << "-----END OF TEST THREE------" << endl;
-                if (DEBUG) cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ " << endl;
-                return;
-            }
-            else {
-                if (DEBUG) cout << "-----TEST FOUR-----" << endl;
-                if (DEBUG) cout << "V V V V V V V V V " << endl;
-                while (speed < target) {
-                    if (!motor->is_over_current()) {
-                        speed += increment;
-                        motor->move(speed);
-                    }
-                    if (DEBUG) printf("speed of Motor: %d\n",int(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
-                    if (DEBUG) cout << "Current of Motor: " << motor->get_current_draw() << "mA" << endl;
-                    pros::Task::delay_until(&now,delta_time);
-                }
-                if (abs(round(motor->get_voltage()*RATIO_FOR_mV_TO_SPEED)) < 20) motor->move(0);
-                if (DEBUG) cout << "-----END OF TEST FOUR------" << endl;
-                if (DEBUG) cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^" << endl;
-                return;
-            }
-        }
-    }
-    return;
+    if (speed == 0) mtr->move_velocity(0);
 }
 
-void TaskSlew(void* args) {
+void SetLiftPos(pros::Motor *mtr, pros::ADIPotentiometer* poti, int target, int speedMax) {
     using namespace std;
-    //if (motor->get_direction() == EACCES) return;
-    int speed = int(round(((SlewArgs*)args)->motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
-    //cout << speed << endl;
-    //cout << target << endl;
-    //prevent needless calls when joystick is held
-    if (speed == ((SlewArgs*)args)->target || abs(abs(((SlewArgs*)args)->target)-abs(speed)) < 10) return;
 
-    if (abs(speed) < abs(((SlewArgs*)args)->target)) {//checks if going cw
-        if (((SlewArgs*)args)->motor->get_direction() == 1 || ((SlewArgs*)args)->target > 0) {
-            cout << "-----TEST ONE-----" << endl;
-            cout << "V V V V V V V V V " << endl;
-            while (speed < ((SlewArgs*)args)->target) {
-                if(!((SlewArgs*)args)->motor->is_over_current()) {
-                    speed += 5; 
-                    ((SlewArgs*)args)->motor->move(speed);
-                }
-                printf("voltage of Motor: %dmV \n",((SlewArgs*)args)->motor->get_voltage());
-                printf("speed of Motor: %d\n",int(((SlewArgs*)args)->motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
-                cout << "Current of Motor: " << ((SlewArgs*)args)->motor->get_current_draw() << "mA" << endl;
-                pros::Task::delay(5);
-            }
-            cout << "-----END OF TEST ONE------" << endl;
-            cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ " << endl;
-            if (speed > 127) ((SlewArgs*)args)->motor->move(127);
-            return;
-        }
-        else {//ccw
-            cout << "-----TEST TWO-----" << endl;
-            cout << "V V V V V V V V V " << endl;
-            while (speed > ((SlewArgs*)args)->target) {
-                if (!((SlewArgs*)args)->motor->is_over_current()) {
-                    speed -= 5;
-                    ((SlewArgs*)args)->motor->move(speed);
-                }
-                printf("speed of Motor: %d\n",int(((SlewArgs*)args)->motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
-                cout << "Current of Motor: " << ((SlewArgs*)args)->motor->get_current_draw() << "mA" << endl;
-                pros::Task::delay(5);
-            }
-            cout << "-----END OF TEST TWO------" << endl;
-            cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ " << endl;
-            if (speed < -127) ((SlewArgs*)args)->motor->move(-127);
-            return;
+    uint32_t now = pros::millis();
+    bool pass;
+    bool gain;
+    int deltaPos = 0;
+    const double kP = 0.05;
+    int currentPos = poti->get_value_calibrated_HR();
+
+    if (currentPos == target) {
+        pass = true;
+    } else {
+        MtrAccel(mtr,speedMax);
+        pass = false;
+        if (currentPos < target) {
+            gain = true;
+        } else {
+            gain = false;
         }
     }
-    else {
-        if (abs(speed) < 30) {
-            ((SlewArgs*)args)->motor->move(0);
-            return;
-        } else {  
-            if (speed > 0) {
-                cout << "-----TEST THREE-----" << endl;
-                cout << "V V V V V V V V V V " << endl;
-                while (speed > ((SlewArgs*)args)->target) {
-                    if (!((SlewArgs*)args)->motor->is_over_current()) {
-                        speed -= 5;
-                       ((SlewArgs*)args)->motor->move(speed);
-                    }
-                    printf("voltage of Motor: %dmV \n",((SlewArgs*)args)->motor->get_voltage());
-                    printf("speed of Motor: %d\n",int(((SlewArgs*)args)->motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
-                    cout << "Current of Motor: " << ((SlewArgs*)args)->motor->get_current_draw() << "mA" << endl;
-                    pros::Task::delay(5);
-                }
-                if (abs(round(((SlewArgs*)args)->motor->get_voltage()*RATIO_FOR_mV_TO_SPEED)) < 20) ((SlewArgs*)args)->motor->move(0);
-                cout << "-----END OF TEST THREE------" << endl;
-                cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ " << endl;
-                return;
-            }
-            else {
-                cout << "-----TEST FOUR-----" << endl;
-                cout << "V V V V V V V V V " << endl;
-                while (speed < ((SlewArgs*)args)->target) {
-                    if (!((SlewArgs*)args)->motor->is_over_current()) {
-                        speed += 5;
-                        ((SlewArgs*)args)->motor->move(speed);
-                    }
-                    printf("speed of Motor: %d\n",int(((SlewArgs*)args)->motor->get_voltage()*RATIO_FOR_mV_TO_SPEED));
-                    cout << "Current of Motor: " << ((SlewArgs*)args)->motor->get_current_draw() << "mA" << endl;
-                    pros::Task::delay(5);
-                }
-                if (abs(round(((SlewArgs*)args)->motor->get_voltage()*RATIO_FOR_mV_TO_SPEED)) < 20) ((SlewArgs*)args)->motor->move(0);
-                cout << "-----END OF TEST FOUR------" << endl;
-                cout << "^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^" << endl;
-                return;
-            }
+    while (!pass) {
+        if (gain) {
+            pass = (currentPos >= target);
+        } else {
+            pass = (currentPos <= target);
         }
+
+        currentPos = poti->get_value_calibrated_HR();
+        deltaPos = floor((target - currentPos)*kP);
+        if (abs(deltaPos) > speedMax) deltaPos = speedMax*SignOf(deltaPos);
+        if (abs(deltaPos) < LIFT_MIN_SPEED) deltaPos = LIFT_MIN_SPEED*SignOf(deltaPos);
+        mtr->move(deltaPos);
+        pros::Task::delay_until(&now,delta_time);
     }
-    return;
+
+    MtrAccel(mtr,0);
 }
 
 int LogSpeed(int rawSpeed) {
-    if (rawSpeed >= 0) {
-        return int(roundf((rawSpeed*rawSpeed)/127.0f));
-    } else {
-        return int(roundf((rawSpeed*rawSpeed)/-127.0f));
-    }
-}
-
-void MsgTerminal(std::string msg) {
-    using namespace std;
-    cout << msg << endl;
+    return (rawSpeed*rawSpeed) / (127*SignOf(rawSpeed));
 }

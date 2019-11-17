@@ -1,5 +1,6 @@
 #include "main.h"
 #include "controls.h"
+#include "globals.hpp"
 #include "display.h"
 
 /*
@@ -16,13 +17,16 @@ void initialize() {
     okapi::IntegratedEncoder rightEnc(rightOne);
 	pros::Motor rightTwo(4,MOTOR_GEARSET_18,true);
 
-	pros::ADIGyro gyro(1);
+	//pros::ADIGyro gyro(1);
 
 	pros::Motor intakeLeft(5,MOTOR_GEARSET_18,false);
 	pros::Motor intakeRight(6,MOTOR_GEARSET_18,true);
 
 	pros::Motor arm(7,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
 	arm.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+	pros::ADIPotentiometer armPot(2);
+	armPot.calibrate();
 	//pros::Motor tilter(8,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
 	//DisplaySetup();
 	/*SlewArgs *MySlewArgs_leftOne = new SlewArgs();
@@ -113,7 +117,7 @@ void opcontrol() {
 	int left_y, left_x, right_x, fwd, rot, side;
 	static const int UPRIGHT = 90;
 	static const int SLANTED = 45;
-	int goal,dire;
+	bool pressed = false;
 	short intakeSpeed;
 
 	leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
@@ -133,7 +137,7 @@ void opcontrol() {
 
 		right_x = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X);
 
-		if (DEBUG) std::cout << "potentiometer value: " << armPos.get_value() << std::endl;
+		if (DEBUG) std::cout << "potentiometer value (Calibrated): " << armPos.get_value_calibrated_HR() << std::endl;
 		
 		  /********************/
 		 /* Driver Contorls  */
@@ -156,10 +160,10 @@ void opcontrol() {
 		}
 	
 		if (master.get_digital(DIGITAL_R1) == 1 && master.get_digital(DIGITAL_R2) == 0) {
-			goal = UPRIGHT;
+			SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
 		}
 		else if (master.get_digital(DIGITAL_R2) == 1 && master.get_digital(DIGITAL_R1) == 0) {
-			goal = SLANTED;
+			SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
 		}
 
 		if (master.get_digital(DIGITAL_L1) ==1 && master.get_digital(DIGITAL_L2) ==0) {
@@ -172,17 +176,14 @@ void opcontrol() {
 			intakeSpeed= 0;
 		}
 
-		if(armPos.get_value() < (goal-POTENTIOMETER_DEADBAND)) {dire=1;}
-		else if(armPos.get_value() > (goal+POTENTIOMETER_DEADBAND)) {dire=-1;}
-		else {dire=0;}
+		MtrAccel(&leftFront,fwd+rot+side);
+		MtrAccel(&rightFront,fwd-rot-side);
+		MtrAccel(&leftBack,fwd+rot-side);
+		MtrAccel(&rightBack,fwd-rot+side);
 
-		SlewRate(fwd+rot+side,&leftFront);
-		SlewRate(fwd-rot-side,&rightFront);
-		SlewRate(fwd+rot-side,&leftBack);
-		SlewRate(fwd-rot+side,&rightBack);
-		SlewRate(90*dire,&arm);
-		SlewRate(intakeSpeed,&intakeLeft);
-		SlewRate(intakeSpeed,&intakeRight);
+		MtrAccel(&intakeLeft,intakeSpeed);
+		MtrAccel(&intakeRight,intakeSpeed);
+
 		pros::Task::delay_until(&now,20);
 	}
 	CleanPointers();

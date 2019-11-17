@@ -6,7 +6,7 @@ static const float RATIO_FOR_mV_TO_SPEED = 0.010583;
 static const int DEADBAND = 50;
 static const int POTENTIOMETER_DEADBAND = 5;
 
-static const bool DEBUG = false;
+static const bool DEBUG = true;
 
 typedef struct {
     int target;
@@ -27,11 +27,11 @@ extern pros::Motor rightOne;
 extern pros::Motor rightTwo;
 extern okapi::IntegratedEncoder leftEnc;
 extern okapi::IntegratedEncoder RightEnc;*/
-pros::motor_pid_s_t SetPID(double gainP, double gainI, double gainD, int port);
-void SlewRate(int target, pros::Motor *motor); 
-void TaskSlew(void* args);
-void Maincontrol();
+void MtrAccel(pros::Motor* mtr,int speed); 
+void SetLiftPos(pros::Motor *mtr, pros::ADIPotentiometer* poti, int target, int speedMax);
+
 void Routine();
 int LogSpeed(int rawSpeed);
+int SignOf(int x);
 void MsgTerminal(std::string msg);
 #endif
