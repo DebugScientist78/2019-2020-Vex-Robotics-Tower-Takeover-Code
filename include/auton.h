@@ -14,10 +14,10 @@
 #define kD_T 0.3;
 
 enum AutonMode {
-    RED_LEFT_GOAL = 0x01,
-    RED_RIGHT_GOAL = 0x02,
-    BLUE_LEFT_GOAL = 0x03,
-    BLUE_RIGHT_GOAL = 0x04,
+    RED_LEFT_GOAL = 1,
+    RED_RIGHT_GOAL, 
+    BLUE_LEFT_GOAL,
+    BLUE_RIGHT_GOAL,
     SKILLS = 0x0A
 };
 
