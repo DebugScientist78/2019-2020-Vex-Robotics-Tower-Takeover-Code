@@ -10,6 +10,18 @@ int SignOf(int x) {
     return 0;
 }
 
+bool IsJoystickActive() {
+	if (master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y) > DEADBAND) {
+		return true;
+	} else if (master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X) > DEADBAND) {
+		return true;
+	} else if (master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X) > DEADBAND) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 /*
 The function iteratively accelerates the motor's speed to the requested speed
 its done it incrments over delta_time ms, creating linear accleration 
@@ -109,6 +121,13 @@ void MtrAccel(pros::Motor* mtr,int speed, bool useVel) {
 
 void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr) {
     using namespace std;
+    //checks if the drive is active and if the lift is active, it will not move the drive
+    if (liftRunning) {
+        for (int i = 0; i < 4; i++) {
+            mtrs[i]->move(0);
+        }
+        return;
+    } 
 
     int fwd, rot, side;
     int reqSpd[4];
@@ -121,32 +140,34 @@ void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr) {
     rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
     
     int left_y = ctrlr->get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y);
-    int left_x = ctrlr->get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X);
     int right_x = ctrlr->get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X);
 
       /********************/
      /* Driver Controls  */
     /********************/
-    if (LogSpeed(abs(left_y)) > DEADBAND && LogSpeed(abs(right_x)) < DEADBAND && LogSpeed(abs(left_x)) < DEADBAND) {
-        fwd = LogSpeed(left_y)*.7;
+    if (LogSpeed(abs(left_y)) > DEADBAND && LogSpeed(abs(right_x)) < DEADBAND) {
+        fwd = LogSpeed(left_y)*.85;
     } else {
         fwd = 0;
     }
-    if (LogSpeed(abs(left_x)) > DEADBAND && LogSpeed(abs(left_y)) < DEADBAND && LogSpeed(abs(right_x)) < DEADBAND) {
-        side = LogSpeed(left_x)*.7;
-    } else {
-        side = 0;
-    }
-    if (LogSpeed(abs(right_x)) > DEADBAND && LogSpeed(abs(left_x)) < DEADBAND && LogSpeed(abs(left_y)) < DEADBAND) {
+    if (LogSpeed(abs(right_x)) > DEADBAND && LogSpeed(abs(left_y)) < DEADBAND) {
         rot = LogSpeed(right_x)*.7;
     }
     else {
         rot = 0;
     }
-    reqSpd[0] = fwd+rot+side;
-    reqSpd[1] = fwd-rot-side;
-    reqSpd[2] = fwd+rot-side;
-    reqSpd[3] = fwd-rot+side;
+    reqSpd[0] = fwd+rot;
+    reqSpd[1] = fwd-rot;
+    reqSpd[2] = fwd+rot;
+    reqSpd[3] = fwd-rot;
+
+    for (int i = 0; i < 4; i++) {
+        if (mtrs[i]->get_voltage() == 0) {
+            driveRunning = false;
+        } else {
+            driveRunning = true;
+        }
+    }
 
     for (int i = 0; i < 4; i++) {
         actSpd[i] = round(mtrs[i]->get_voltage()*0.010583);
@@ -164,7 +185,7 @@ void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr) {
 
 void TareLift(pros::Motor *mtr, pros::ADIDigitalIn *btn) {
     //MtrAccel(mtr,50,true);
-    mtr->move_velocity(50);
+    mtr->move_velocity(80);
     while (btn->get_value() == 0) {
         pros::delay(10);
     }
@@ -174,23 +195,36 @@ void TareLift(pros::Motor *mtr, pros::ADIDigitalIn *btn) {
 }
 
 void ReleaseLift(pros::Motor *mtr, int target) {
-   //MtrAccel(mtr,LIFT_MAX_SPEED,true);
-    mtr->move_absolute(target,-50);
+    //MtrAccel(mtr,LIFT_MAX_SPEED,true);
+    mtr->move_absolute(target,-60);
     while (mtr->get_position() > target) {
+        //std::cout << mtr->get_position() << std::endl;
         pros::delay(10);
     }
+    return;
     //MtrAccel(mtr,0,true);
     //mtr->move_velocity(0);
 }
 
+void ManualArm() {
+	if (master.get_digital(DIGITAL_UP) == 1 && arm.get_position() > -2750) {
+		arm.move_velocity(-30);
+	}
+    else if (master.get_digital(DIGITAL_DOWN) ==1 && liftBtn.get_value() == 0) {
+        arm.move_velocity(30);
+    } else {
+        arm.move_velocity(0);
+    }
+}
+
 void Intake() {
     if (master.get_digital(DIGITAL_L2) ==1 && master.get_digital(DIGITAL_L1) ==0) {
-        intakeLeft.move_velocity(100);
-        intakeRight.move_velocity(100);
-    }
-    else if (master.get_digital(DIGITAL_L1) ==1 && master.get_digital(DIGITAL_L2) ==0) {
         intakeLeft.move_velocity(-100);
         intakeRight.move_velocity(-100);
+    }
+    else if (master.get_digital(DIGITAL_L1) ==1 && master.get_digital(DIGITAL_L2) ==0) {
+        intakeLeft.move_velocity(100);
+        intakeRight.move_velocity(100);
     } else {
         intakeLeft.move_velocity(0);
         intakeRight.move_velocity(0);

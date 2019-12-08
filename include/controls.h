@@ -31,6 +31,7 @@ void MtrAccel(pros::Motor* mtr,int speed, bool useVel);
 void SetLiftPos(pros::Motor *mtr, pros::ADIPotentiometer* poti, int target, int speedMax);
 void TareLift(pros::Motor *mtr, pros::ADIDigitalIn *btn);
 void ReleaseLift(pros::Motor *mtr, int target);
+void ManualArm();
 void Intake();
 void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr);
 

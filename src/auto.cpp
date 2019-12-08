@@ -30,7 +30,11 @@ void driveAccel(int speed[4]) {
 
 void pidStright(double distance, int speed) {
     using namespace std;
-    uint32_t now = pros::millis();
+
+	leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	rightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
     leftFront.tare_position();
     rightFront.tare_position();
@@ -66,7 +70,7 @@ void pidTurn(int degrees, int speed) {
     double kP = 0.6;
     int spd[4];
     gyro.reset();
-    pros::delay(100);
+    pros::delay(1300);
 
     if (SignOf(degrees) > 0) { 
         spd[0] = speed;
@@ -118,11 +122,11 @@ void pidTurn(int degrees, int speed) {
 
 void TurnIntakeON(bool inwards) {
     if (inwards) {
-        intakeLeft.move_velocity(-100);
-        intakeRight.move_velocity(-100);
-    } else {
         intakeLeft.move_velocity(100);
         intakeRight.move_velocity(100);
+    } else {
+        intakeLeft.move_velocity(-100);
+        intakeRight.move_velocity(-100);
     }
 }
 

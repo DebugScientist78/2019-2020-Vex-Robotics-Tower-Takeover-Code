@@ -53,4 +53,7 @@ extern int driveAccelCap;
 extern bool intakeOn;
 extern bool intakeInward;
 
+extern bool driveRunning;
+extern bool liftRunning;
+
 #endif

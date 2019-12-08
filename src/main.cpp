@@ -21,8 +21,8 @@ void initialize() {
 	pros::ADIGyro gyro(1,1);
 	pros::delay(1300);
 
-	pros::Motor intakeLeft(5,MOTOR_GEARSET_36,false);
-	pros::Motor intakeRight(6,MOTOR_GEARSET_36,true);
+	pros::Motor intakeLeft(6,MOTOR_GEARSET_36,false);
+	pros::Motor intakeRight(8,MOTOR_GEARSET_36,true);
 
 	pros::Motor arm(7,MOTOR_GEARSET_36,false,MOTOR_ENCODER_COUNTS);
 	arm.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -88,7 +88,7 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
-	Routine();
+	Procedure();
 }
 
 /**
@@ -122,10 +122,7 @@ void opcontrol() {
 	pros::ADIDigitalIn liftBtn(3);
 	//pros::Motor tilter(8);
 
-	bool at90 = false;
-
-	bool intakeOn = false;
-	bool intakeInward = true;
+	bool at90 = true;
 
 	leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 	leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
@@ -142,20 +139,34 @@ void opcontrol() {
 	pros::Motor *driveArr[4] = {&leftFront,&rightFront,&leftBack,&rightBack};
 	while (true) {
 	
-		if (master.get_digital(DIGITAL_R2) == 1 && master.get_digital(DIGITAL_R1) == 0) {
+		if (master.get_digital(DIGITAL_R1) == 1 && master.get_digital(DIGITAL_R2) == 0) {
 			//SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
-			if (!at90) {
-				TareLift(&arm,&liftBtn);
-				at90 = true;
+			if (!driveRunning) {
+				liftRunning = true;
+				if (!at90) {
+					TareLift(&arm,&liftBtn);
+					at90 = true;
+				}
 			}
 		}
-		else if (master.get_digital(DIGITAL_R1) == 1 && master.get_digital(DIGITAL_R2) == 0) {
+		else if (master.get_digital(DIGITAL_R2) == 1 && master.get_digital(DIGITAL_R1) == 0) {
 			//SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
-			if (at90) {
-				ReleaseLift(&arm,-2000);
-				at90 = false;
+			if (!driveRunning) {
+				liftRunning = true;
+				if (at90) {
+					ReleaseLift(&arm,-2750);
+					at90 = false;
+				}
 			}
+		/*} else if (master.get_digital(DIGITAL_X) == 1 && master.get_digital(DIGITAL_R1) == 0 && master.get_digital(DIGITAL_R2) == 0) {
+			if (!driveRunning) {
+				liftRunning = true;
+				MoveLift(&arm,-200);
+			}*/
+		} else {
+			liftRunning =false;
 		}
+		ManualArm();
 
 		/*MtrAccel(&leftFront,fwd+rot+side,false);
 		MtrAccel(&rightFront,fwd-rot-side,false);
@@ -165,15 +176,10 @@ void opcontrol() {
 		rightFront.move(fwd-rot-side);
 		leftBack.move(fwd+rot-side);
 		rightBack.move(fwd-rot+side);*/
-		Drive(driveArr,&master);
-		Intake();
 
-		if (master.get_digital(DIGITAL_A) == 1) {
-			pidTurn(900,90);
-		}
-		if (master.get_digital(DIGITAL_B) ==1) {
-			pidStright(12.6,100);
-		}
+		Drive(driveArr,&master);
+
+		Intake();
 
 		pros::delay(10);
 	}

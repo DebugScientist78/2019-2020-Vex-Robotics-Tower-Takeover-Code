@@ -15,4 +15,6 @@ void pidRelease();
 void TurnIntakeON(bool inwards);
 void TurnIntakeOFF();
 
+void Procedure();
+
 #endif
