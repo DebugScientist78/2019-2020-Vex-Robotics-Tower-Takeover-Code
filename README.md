@@ -1,6 +1,8 @@
 # 2019-2020 Vex Robotics Tower Takeover Code
 
-## Stable Master version
+## Stable latest version of 1st bot (deprecated)
+
+mecanum drive, 2 motor intake and 1 motor angle adjuster
 
 __To complie code__:
 ```
