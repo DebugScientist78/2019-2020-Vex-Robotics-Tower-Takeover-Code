@@ -4,36 +4,17 @@
 static const int baseSpeed = 60;
 static const float RATIO_FOR_mV_TO_SPEED = 0.010583;
 static const int DEADBAND = 50;
-static const int POTENTIOMETER_DEADBAND = 5;
 
-static const bool DEBUG = true;
+static const bool DEBUG = false;
 
-typedef struct {
-    int target;
-    pros::Motor *motor;
-} SlewArgs;
-
-typedef struct {
-    const char * input;
-    pros::Controller *ctrlr;
-} lcdArgs;
-
-void initlizeArm();
-void initlizeSensors();/*
-extern pros::Controller master;
-extern pros::Motor leftOne;
-extern pros::Motor leftTwo;
-extern pros::Motor rightOne;
-extern pros::Motor rightTwo;
-extern okapi::IntegratedEncoder leftEnc;
-extern okapi::IntegratedEncoder RightEnc;*/
-void MtrAccel(pros::Motor* mtr,int speed, bool useVel); 
-void SetLiftPos(pros::Motor *mtr, pros::ADIPotentiometer* poti, int target, int speedMax);
-void TareLift(pros::Motor *mtr, pros::ADIDigitalIn *btn);
-void ReleaseLift(pros::Motor *mtr, int target);
+void TareArm(pros::Motor *mtr, pros::ADIDigitalIn *btn);
+void ReleaseArm(pros::Motor *mtr, int target);
 void ManualArm();
 void Intake();
 void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr);
+void ManualLift();
+void TareLift();
+void SetLift(int position);
 
 void Routine();
 int LogSpeed(int rawSpeed);

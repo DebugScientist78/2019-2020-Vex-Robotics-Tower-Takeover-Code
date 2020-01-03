@@ -42,7 +42,6 @@
 #include "controls.h"
 #include "display.h"
 #include "auton.h"
-#include "okapi/api.hpp"
 #include "pros/api_legacy.h"
 
 /**
@@ -80,6 +79,9 @@ void opcontrol(void);
  * You can add C++-only headers here
  */
 //#include <iostream>
+#include "LLEMU.hpp"
+#include "auto.hpp"
+#include "okapi/api.hpp"
 #endif
 
 #endif  // _PROS_MAIN_H_

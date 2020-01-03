@@ -1,11 +1,9 @@
 #ifndef AUTO_HPP
 #define AUTO_HPP
 #include "main.h"
-#include "controls.h"
-#include "globals.hpp"
 
 const static int wheelDiameter = 4;
-const static double driveCircumference = 12.6;
+const static double driveCircumference = 10.2;
 const static int ticksPerRev = 900;
 
 void pidStright(double distance, int speed);

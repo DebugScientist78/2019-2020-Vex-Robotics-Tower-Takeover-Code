@@ -1,4 +1,9 @@
-#include "auto.hpp"
+#include "main.h"
+#include "globals.hpp"
+
+void Blue_Left_Goal() {
+    
+}
 
 void Procedure() {
     int x,y;
@@ -32,9 +37,9 @@ void Procedure() {
 
         pidTurn(900,100);
         pidStright(y,120);
-        ReleaseLift(&arm,-2000);
+        ReleaseArm(&arm,-2000);
         pidStright(-y,120);
-        TareLift(&arm,&liftBtn);
+        TareArm(&arm,&liftBtn);
     } else if (autoMode == BLUE_RIGHT_GOAL) {
         
     }

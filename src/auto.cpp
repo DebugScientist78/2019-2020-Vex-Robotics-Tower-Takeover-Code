@@ -1,4 +1,5 @@
-#include "auto.hpp"
+#include "main.h"
+#include "globals.hpp"
 
 //inches to one decimal place
 int calculateDistance(double inches) {

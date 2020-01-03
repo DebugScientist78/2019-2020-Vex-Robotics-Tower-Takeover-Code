@@ -1,7 +1,5 @@
 #include "main.h"
-#include "auton.h"
 #include "globals.hpp"
-#include "display.h"
 
 lv_obj_t * btnRedOne;
 lv_obj_t * btnRedOne__label;
@@ -23,8 +21,8 @@ lv_obj_t * confirmBtn;
 lv_obj_t * confirmBtn__label;
 lv_style_t * confirmBtn__style;
 
-lv_obj_t * wallpaper;
-lv_style_t * wallpaper_style;
+lv_obj_t * wallpaper = nullptr;
+lv_style_t * wallpaper_style = nullptr;
 
 lv_obj_t * Description;
 lv_style_t * Description_style;
@@ -112,14 +110,12 @@ static lv_res_t BtnPressed(lv_obj_t * btn) {
 }
 
 void DisplaySetup() {
-    wallpaper = lv_obj_create(NULL,NULL);
-    lv_style_copy(wallpaper_style,&lv_style_plain);
-    wallpaper_style->body.main_color = LV_COLOR_GRAY;
-    wallpaper_style->body.grad_color = LV_COLOR_GRAY;
-    lv_obj_set_style(wallpaper,wallpaper_style);
-    lv_scr_load(wallpaper);
+    wallpaper = lv_obj_create(lv_scr_act(), NULL);
+    lv_obj_set_size(wallpaper, 150, 40);
+    lv_obj_set_style(wallpaper, &lv_style_plain_color);
+    lv_obj_align(wallpaper, NULL, LV_ALIGN_IN_TOP_MID, 0, 40);
 
-    btnRedOne = createBtn(wallpaper,0,0,120,60,0,"Red One");
+    /*btnRedOne = createBtn(wallpaper,0,0,120,60,0,"Red One");
     lv_obj_set_free_num(btnRedOne,0);
     lv_btn_set_action(btnRedOne,LV_BTN_ACTION_CLICK,BtnPressed);
     btnRedTwo = createBtn(wallpaper,120,0,120,60,1,"Red Two");
@@ -188,7 +184,7 @@ void DisplaySetup() {
 
     Description_label = lv_label_create(Description,NULL);
     lv_label_set_text(Description_label,"Nothing selected");
-    lv_obj_align(Description_label, NULL, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(Description_label, NULL, LV_ALIGN_CENTER, 0, 0);*/
 }
 
 void AutonSelect() {

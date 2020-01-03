@@ -46,6 +46,6 @@ lv_obj_t * createBtn(lv_obj_t * parent, lv_coord_t x, lv_coord_t y, lv_coord_t w
     int id, const char * title);
 void DisplaySetup();
 void CleanPointers();
-void AutonSelector();
+void AutonSelect();
 void DisplayControl();
 #endif

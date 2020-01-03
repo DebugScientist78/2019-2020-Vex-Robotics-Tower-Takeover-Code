@@ -1,7 +1,5 @@
 #ifndef GLOBALS_HPP_
 #define GlOBALS_HPP_
-#include "main.h"
-#include "controls.h"
 
 /*static const int DRIVE_MAX_SPEED = 80;
 static const int TURN_MAX_SPEED = 70;
@@ -29,6 +27,8 @@ extern SlewArgs *tilter_Args;*/
 /*******************************************/
 
 extern pros::Controller master;
+extern pros::Controller partner;
+
 extern pros::Motor leftFront;
 extern pros::Motor leftBack;
 extern pros::Motor rightFront;
@@ -38,16 +38,18 @@ extern pros::Motor intakeLeft;
 extern pros::Motor intakeRight;
 
 extern pros::Motor arm;
-extern pros::Motor tilter;
+extern pros::Motor lift;
 
 extern pros::ADIGyro gyro;
 
 extern pros::ADIPotentiometer pot;
 extern pros::ADIDigitalIn liftBtn;
+extern pros::ADIDigitalIn armBtn;
 
 //void setup();
 
 extern int autoMode;
+extern bool choosingAuto;
 extern int driveAccelCap;
 
 extern bool intakeOn;
@@ -55,5 +57,7 @@ extern bool intakeInward;
 
 extern bool driveRunning;
 extern bool liftRunning;
+
+const bool MASTER_OVERRIDE = true;
 
 #endif

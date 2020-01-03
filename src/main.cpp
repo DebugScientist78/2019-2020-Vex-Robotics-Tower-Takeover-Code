@@ -1,8 +1,5 @@
 #include "main.h"
-#include "controls.h"
 #include "globals.hpp"
-#include "display.h"
-#include "auto.hpp"
 
 /*
  * Runs initialization code. This occurs as soon as the program is started.
@@ -11,6 +8,11 @@
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
+	pros::lcd::initialize();
+	pros::lcd::register_btn0_cb(MoveAutoUp);
+	pros::lcd::register_btn1_cb(MoveAutoDown);
+	pros::lcd::register_btn2_cb(ConfirmAuto);
+
 	intakeLeft.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     intakeRight.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     pros::Motor leftFront(1,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
@@ -19,13 +21,18 @@ void initialize() {
 	pros::Motor rightBack(4,MOTOR_GEARSET_18,true);
 
 	pros::ADIGyro gyro(1,1);
-	pros::delay(1300);
 
 	pros::Motor intakeLeft(6,MOTOR_GEARSET_36,false);
 	pros::Motor intakeRight(8,MOTOR_GEARSET_36,true);
 
 	pros::Motor arm(7,MOTOR_GEARSET_36,false,MOTOR_ENCODER_COUNTS);
+
+	pros::Motor leftLift(11,MOTOR_GEARSET_36,false,MOTOR_ENCODER_COUNTS);
+	pros::Motor rightLift(12,MOTOR_GEARSET_36,true,MOTOR_ENCODER_COUNTS);
+
 	arm.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	leftLift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	rightLift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
 	pros::ADIPotentiometer armPot(2);
 	armPot.calibrate();
@@ -53,6 +60,8 @@ void initialize() {
 	pros::Task SlewLeftTwo(TaskSlew,(void*)MySlewArgs_leftTwo,"SlewLeftTwo");
 	pros::Task SlewRightOne(TaskSlew,(void*)MySlewArgs_rightOne,"SlewRightOne");
 	pros::Task SlewRightTwo(TaskSlew,(void*)MySlewArgs_rightTwo,"SlewRightTwo");*/
+	//AutonSelect();
+	//pros::delay(100);
 	//DisplaySetup();
 }
 
@@ -73,7 +82,8 @@ void disabled() {}
  * starts.
  */
 void competition_initialize() {
-	//DisplaySetup();
+	//AutonSelect();
+	ChooseAutoLEGACY();
 }
 
 /**
@@ -108,6 +118,8 @@ void opcontrol() {
 	using namespace std;
 
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
+	pros::Controller partner(pros::E_CONTROLLER_PARTNER);
+
 	pros::Motor leftFront(1);
 	pros::Motor leftBack(2);
 	pros::Motor rightFront(3);
@@ -118,16 +130,14 @@ void opcontrol() {
 
 	pros::Motor arm(7);
 
+	pros::Motor leftLift(11);
+	pros::Motor rightLift(12);
+
 	pros::ADIPotentiometer armPos(2);
 	pros::ADIDigitalIn liftBtn(3);
 	//pros::Motor tilter(8);
 
 	bool at90 = true;
-
-	leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	rightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
 	intakeLeft.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	intakeRight.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -138,33 +148,62 @@ void opcontrol() {
 	//pros::Task intakeTask(Intake,NULL,TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"intake Task");
 	pros::Motor *driveArr[4] = {&leftFront,&rightFront,&leftBack,&rightBack};
 	while (true) {
-	
-		if (master.get_digital(DIGITAL_R1) == 1 && master.get_digital(DIGITAL_R2) == 0) {
-			//SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
-			if (!driveRunning) {
-				liftRunning = true;
-				if (!at90) {
-					TareLift(&arm,&liftBtn);
-					at90 = true;
+		if (MASTER_OVERRIDE && !partner.is_connected()) {
+			if (master.get_digital(DIGITAL_R1) == 1 && master.get_digital(DIGITAL_R2) == 0) {
+				//SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
+				if (!driveRunning) {
+					liftRunning = true;
+					if (!at90) {
+						TareArm(&arm,&liftBtn);
+						at90 = true;
+					}
 				}
 			}
-		}
-		else if (master.get_digital(DIGITAL_R2) == 1 && master.get_digital(DIGITAL_R1) == 0) {
-			//SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
-			if (!driveRunning) {
-				liftRunning = true;
-				if (at90) {
-					ReleaseLift(&arm,-2750);
-					at90 = false;
+			else if (master.get_digital(DIGITAL_R2) == 1 && master.get_digital(DIGITAL_R1) == 0) {
+				//SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
+				if (!driveRunning) {
+					liftRunning = true;
+					if (at90) {
+						ReleaseArm(&arm,-2750);
+						at90 = false;
+					}
 				}
+			/*} else if (master.get_digital(DIGITAL_X) == 1 && master.get_digital(DIGITAL_R1) == 0 && master.get_digital(DIGITAL_R2) == 0) {
+				if (!driveRunning) {
+					liftRunning = true;
+					MoveLift(&arm,-200);
+				}*/
+			} else {
+				liftRunning =false;
 			}
-		/*} else if (master.get_digital(DIGITAL_X) == 1 && master.get_digital(DIGITAL_R1) == 0 && master.get_digital(DIGITAL_R2) == 0) {
-			if (!driveRunning) {
-				liftRunning = true;
-				MoveLift(&arm,-200);
-			}*/
 		} else {
-			liftRunning =false;
+			if (partner.get_digital(DIGITAL_R1) == 1 && partner.get_digital(DIGITAL_R2) == 0) {
+				//SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
+				if (!driveRunning) {
+					liftRunning = true;
+					if (!at90) {
+						TareArm(&arm,&liftBtn);
+						at90 = true;
+					}
+				}
+			}
+			else if (partner.get_digital(DIGITAL_R2) == 1 && partner.get_digital(DIGITAL_R1) == 0) {
+				//SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
+				if (!driveRunning) {
+					liftRunning = true;
+					if (at90) {
+						ReleaseArm(&arm,-2750);
+						at90 = false;
+					}
+				}
+			/*} else if (master.get_digital(DIGITAL_X) == 1 && master.get_digital(DIGITAL_R1) == 0 && master.get_digital(DIGITAL_R2) == 0) {
+				if (!driveRunning) {
+					liftRunning = true;
+					MoveLift(&arm,-200);
+				}*/
+			} else {
+				liftRunning =false;
+			}
 		}
 		ManualArm();
 

@@ -1,6 +1,5 @@
 #include "main.h"
 #include "globals.hpp"
-#include "controls.h"
 static const int increment = 20;
 static const int delta_time = 20;
 
@@ -128,6 +127,8 @@ void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr) {
         }
         return;
     } 
+    double start, end;
+    start = mtrs[0]->get_position();
 
     int fwd, rot, side;
     int reqSpd[4];
@@ -146,7 +147,7 @@ void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr) {
      /* Driver Controls  */
     /********************/
     if (LogSpeed(abs(left_y)) > DEADBAND && LogSpeed(abs(right_x)) < DEADBAND) {
-        fwd = LogSpeed(left_y)*.85;
+        fwd = LogSpeed(left_y)*.8;
     } else {
         fwd = 0;
     }
@@ -180,10 +181,12 @@ void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr) {
         mtrs[i]->move(actSpd[i]);
         pros::delay(10);
     }
-
+    end = mtrs[0]->get_position();
+    master.print(0,0,"%d",round(end-start));
+    pros::lcd::set_text(0,to_string(round(end-start)));
 }
 
-void TareLift(pros::Motor *mtr, pros::ADIDigitalIn *btn) {
+void TareArm(pros::Motor *mtr, pros::ADIDigitalIn *btn) {
     //MtrAccel(mtr,50,true);
     mtr->move_velocity(80);
     while (btn->get_value() == 0) {
@@ -194,7 +197,7 @@ void TareLift(pros::Motor *mtr, pros::ADIDigitalIn *btn) {
     mtr->tare_position();
 }
 
-void ReleaseLift(pros::Motor *mtr, int target) {
+void ReleaseArm(pros::Motor *mtr, int target) {
     //MtrAccel(mtr,LIFT_MAX_SPEED,true);
     mtr->move_absolute(target,-60);
     while (mtr->get_position() > target) {
@@ -207,30 +210,92 @@ void ReleaseLift(pros::Motor *mtr, int target) {
 }
 
 void ManualArm() {
-	if (master.get_digital(DIGITAL_UP) == 1 && arm.get_position() > -2750) {
-		arm.move_velocity(-30);
-	}
-    else if (master.get_digital(DIGITAL_DOWN) ==1 && liftBtn.get_value() == 0) {
-        arm.move_velocity(30);
+    if (!MASTER_OVERRIDE && partner.is_connected()) {
+        if (partner.get_digital(DIGITAL_UP) == 1 && arm.get_position() > -2750) {
+            arm.move_velocity(-30);
+        }
+        else if (partner.get_digital(DIGITAL_DOWN) ==1 && liftBtn.get_value() == 0) {
+            arm.move_velocity(30);
+        } else {
+            arm.move_velocity(0);
+        }
     } else {
-        arm.move_velocity(0);
+        if (master.get_digital(DIGITAL_UP) == 1 && arm.get_position() > -2750) {
+            arm.move_velocity(-30);
+        }
+        else if (master.get_digital(DIGITAL_DOWN) ==1 && liftBtn.get_value() == 0) {
+            arm.move_velocity(30);
+        } else {
+            arm.move_velocity(0);
+        }
     }
 }
 
 void Intake() {
-    if (master.get_digital(DIGITAL_L2) ==1 && master.get_digital(DIGITAL_L1) ==0) {
-        intakeLeft.move_velocity(-100);
-        intakeRight.move_velocity(-100);
-    }
-    else if (master.get_digital(DIGITAL_L1) ==1 && master.get_digital(DIGITAL_L2) ==0) {
-        intakeLeft.move_velocity(100);
-        intakeRight.move_velocity(100);
+    if (partner.is_connected() && !MASTER_OVERRIDE) {
+        if (partner.get_digital(DIGITAL_L2) ==1 && partner.get_digital(DIGITAL_L1) ==0) {
+            intakeLeft.move_velocity(-100);
+            intakeRight.move_velocity(-100);
+        }
+        else if (partner.get_digital(DIGITAL_L1) ==1 && partner.get_digital(DIGITAL_L2) ==0) {
+            intakeLeft.move_velocity(100);
+            intakeRight.move_velocity(100);
+        } else {
+            intakeLeft.move_velocity(0);
+            intakeRight.move_velocity(0);
+        }
     } else {
-        intakeLeft.move_velocity(0);
-        intakeRight.move_velocity(0);
+        if (master.get_digital(DIGITAL_L2) ==1 && master.get_digital(DIGITAL_L1) ==0) {
+            intakeLeft.move_velocity(-100);
+            intakeRight.move_velocity(-100);
+        }
+        else if (master.get_digital(DIGITAL_L1) ==1 && master.get_digital(DIGITAL_L2) ==0) {
+            intakeLeft.move_velocity(100);
+            intakeRight.move_velocity(100);
+        } else {
+            intakeLeft.move_velocity(0);
+            intakeRight.move_velocity(0);
+        }
     }
 }
 
 int LogSpeed(int rawSpeed) {
     return (rawSpeed*rawSpeed) / (127*SignOf(rawSpeed));
+}
+
+void ManualLift() {
+    lift.set_brake_mode(MOTOR_BRAKE_HOLD);
+    if (partner.is_connected() && !MASTER_OVERRIDE) {
+        if (partner.get_digital(DIGITAL_R1) == 1) {
+            lift.move_velocity(80);
+        } else if (partner.get_digital(DIGITAL_R2) == 1) {
+            lift.move_velocity(-80);
+        } else {
+            lift.move_velocity(0);
+        }
+    } else {
+        if (master.get_digital(DIGITAL_A) == 1) {
+            lift.move_velocity(80);
+        } else if (master.get_digital(DIGITAL_Y) == 1) {
+            lift.move_velocity(-80);
+        } else {
+            lift.move_velocity(0);
+        }
+    }
+}
+
+void TareLift() {
+    lift.move_velocity(-80);
+    while(liftBtn.get_value() == 0) {
+        pros::delay(10);
+    }
+    lift.move_velocity(0);
+    lift.tare_position();
+}
+
+void SetLift(int position) {
+    lift.move_absolute(position,60);
+    while (lift.get_position() < position) {
+        pros::delay(10);
+    }
 }
