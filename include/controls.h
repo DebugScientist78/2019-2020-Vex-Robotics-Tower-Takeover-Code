@@ -7,17 +7,18 @@ static const int DEADBAND = 50;
 
 static const bool DEBUG = false;
 
-void TareArm(pros::Motor *mtr, pros::ADIDigitalIn *btn);
-void ReleaseArm(pros::Motor *mtr, int target);
+void TareArm();
+void ReleaseArm(int target);
 void ManualArm();
 void Intake();
-void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr);
+void Drive();
 void ManualLift();
 void TareLift();
 void SetLift(int position);
 
-void Routine();
+void LiftSystem();
+void ArmSystem();
+
 int LogSpeed(int rawSpeed);
 int SignOf(int x);
-void MsgTerminal(std::string msg);
 #endif

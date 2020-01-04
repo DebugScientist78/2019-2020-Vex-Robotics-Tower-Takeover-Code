@@ -37,9 +37,9 @@ void Procedure() {
 
         pidTurn(900,100);
         pidStright(y,120);
-        ReleaseArm(&arm,-2000);
+        ReleaseArm(-2000);
         pidStright(-y,120);
-        TareArm(&arm,&liftBtn);
+        TareArm();
     } else if (autoMode == BLUE_RIGHT_GOAL) {
         
     }

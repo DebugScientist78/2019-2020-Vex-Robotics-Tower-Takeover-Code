@@ -22,7 +22,7 @@ void ChooseAutoLEGACY() {
     set_text(1,"left btn, move the auto value up");
     set_text(2,"middle btn, move the auto value down");
     set_text(3,"right btn, confirm and exit auton selection");
-    while (!choosingAuto) {
+    while (choosingAuto) {
         switch (autoMode)
         {
             case 0:

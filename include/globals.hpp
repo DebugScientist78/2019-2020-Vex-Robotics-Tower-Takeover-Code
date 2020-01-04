@@ -59,5 +59,6 @@ extern bool driveRunning;
 extern bool liftRunning;
 
 const bool MASTER_OVERRIDE = true;
+extern bool at90;
 
 #endif

@@ -137,7 +137,6 @@ void opcontrol() {
 	pros::ADIDigitalIn liftBtn(3);
 	//pros::Motor tilter(8);
 
-	bool at90 = true;
 
 	intakeLeft.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	intakeRight.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -146,77 +145,12 @@ void opcontrol() {
 
 	//uint32_t now = pros::millis();
 	//pros::Task intakeTask(Intake,NULL,TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"intake Task");
-	pros::Motor *driveArr[4] = {&leftFront,&rightFront,&leftBack,&rightBack};
 	while (true) {
-		if (MASTER_OVERRIDE && !partner.is_connected()) {
-			if (master.get_digital(DIGITAL_R1) == 1 && master.get_digital(DIGITAL_R2) == 0) {
-				//SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
-				if (!driveRunning) {
-					liftRunning = true;
-					if (!at90) {
-						TareArm(&arm,&liftBtn);
-						at90 = true;
-					}
-				}
-			}
-			else if (master.get_digital(DIGITAL_R2) == 1 && master.get_digital(DIGITAL_R1) == 0) {
-				//SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
-				if (!driveRunning) {
-					liftRunning = true;
-					if (at90) {
-						ReleaseArm(&arm,-2750);
-						at90 = false;
-					}
-				}
-			/*} else if (master.get_digital(DIGITAL_X) == 1 && master.get_digital(DIGITAL_R1) == 0 && master.get_digital(DIGITAL_R2) == 0) {
-				if (!driveRunning) {
-					liftRunning = true;
-					MoveLift(&arm,-200);
-				}*/
-			} else {
-				liftRunning =false;
-			}
-		} else {
-			if (partner.get_digital(DIGITAL_R1) == 1 && partner.get_digital(DIGITAL_R2) == 0) {
-				//SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
-				if (!driveRunning) {
-					liftRunning = true;
-					if (!at90) {
-						TareArm(&arm,&liftBtn);
-						at90 = true;
-					}
-				}
-			}
-			else if (partner.get_digital(DIGITAL_R2) == 1 && partner.get_digital(DIGITAL_R1) == 0) {
-				//SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
-				if (!driveRunning) {
-					liftRunning = true;
-					if (at90) {
-						ReleaseArm(&arm,-2750);
-						at90 = false;
-					}
-				}
-			/*} else if (master.get_digital(DIGITAL_X) == 1 && master.get_digital(DIGITAL_R1) == 0 && master.get_digital(DIGITAL_R2) == 0) {
-				if (!driveRunning) {
-					liftRunning = true;
-					MoveLift(&arm,-200);
-				}*/
-			} else {
-				liftRunning =false;
-			}
-		}
-		ManualArm();
+		ArmSystem();
 
-		/*MtrAccel(&leftFront,fwd+rot+side,false);
-		MtrAccel(&rightFront,fwd-rot-side,false);
-		MtrAccel(&leftBack,fwd+rot-side,false);
-		MtrAccel(&rightBack,fwd-rot+side,false);
-		leftFront.move(fwd+rot+side);
-		rightFront.move(fwd-rot-side);
-		leftBack.move(fwd+rot-side);
-		rightBack.move(fwd-rot+side);*/
+		LiftSystem();
 
-		Drive(driveArr,&master);
+		Drive();
 
 		Intake();
 

@@ -8,19 +8,6 @@ int SignOf(int x) {
     if (x<0) return -1;
     return 0;
 }
-
-bool IsJoystickActive() {
-	if (master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y) > DEADBAND) {
-		return true;
-	} else if (master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_X) > DEADBAND) {
-		return true;
-	} else if (master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X) > DEADBAND) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
 /*
 The function iteratively accelerates the motor's speed to the requested speed
 its done it incrments over delta_time ms, creating linear accleration 
@@ -118,17 +105,18 @@ void MtrAccel(pros::Motor* mtr,int speed, bool useVel) {
     MtrAccel(mtr,0,true);
 }*/
 
-void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr) {
+void Drive() {
     using namespace std;
+    pros::Motor mtrs[4] = {leftFront,rightFront,leftBack,rightBack};
     //checks if the drive is active and if the lift is active, it will not move the drive
     if (liftRunning) {
         for (int i = 0; i < 4; i++) {
-            mtrs[i]->move(0);
+            mtrs[i].move(0);
         }
         return;
     } 
     double start, end;
-    start = mtrs[0]->get_position();
+    start = mtrs[0].get_position();
 
     int fwd, rot, side;
     int reqSpd[4];
@@ -140,8 +128,8 @@ void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr) {
     leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
     rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
     
-    int left_y = ctrlr->get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y);
-    int right_x = ctrlr->get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X);
+    int left_y = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y);
+    int right_x = master.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X);
 
       /********************/
      /* Driver Controls  */
@@ -163,7 +151,7 @@ void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr) {
     reqSpd[3] = fwd-rot;
 
     for (int i = 0; i < 4; i++) {
-        if (mtrs[i]->get_voltage() == 0) {
+        if (mtrs[i].get_voltage() == 0) {
             driveRunning = false;
         } else {
             driveRunning = true;
@@ -171,38 +159,45 @@ void Drive(pros::Motor *mtrs[4], pros::Controller *ctrlr) {
     }
 
     for (int i = 0; i < 4; i++) {
-        actSpd[i] = round(mtrs[i]->get_voltage()*0.010583);
+        actSpd[i] = round(mtrs[i].get_voltage()*0.010583);
         deltaSpd[i] = reqSpd[i]-actSpd[i];
         if (abs(deltaSpd[i]) > 15) {
             actSpd[i] += 15 * SignOf(deltaSpd[i]);
         } else {
             actSpd[i] = reqSpd[i];
         }
-        mtrs[i]->move(actSpd[i]);
+        mtrs[i].move(actSpd[i]);
         pros::delay(10);
     }
-    end = mtrs[0]->get_position();
+    end = mtrs[0].get_position();
     master.print(0,0,"%d",round(end-start));
     pros::lcd::set_text(0,to_string(round(end-start)));
 }
 
-void TareArm(pros::Motor *mtr, pros::ADIDigitalIn *btn) {
+void TareArm() {
     //MtrAccel(mtr,50,true);
-    mtr->move_velocity(80);
-    while (btn->get_value() == 0) {
+    arm.move_velocity(80);
+    while (armBtn.get_value() == 0) {
         pros::delay(10);
     }
     //MtrAccel(mtr,0,true);
-    mtr->move_velocity(0);
-    mtr->tare_position();
+    arm.move_velocity(0);
+    arm.tare_position();
 }
 
-void ReleaseArm(pros::Motor *mtr, int target) {
+void ReleaseArm(int target) {
     //MtrAccel(mtr,LIFT_MAX_SPEED,true);
-    mtr->move_absolute(target,-60);
-    while (mtr->get_position() > target) {
-        //std::cout << mtr->get_position() << std::endl;
-        pros::delay(10);
+    if (target > arm.get_position()) {
+        arm.move_absolute(target,60);
+        while (arm.get_position() < target) {
+            pros::delay(10);
+        }
+    } else if (target < arm.get_position()) {
+        arm.move_absolute(target,-60);
+        while (arm.get_position() > target) {
+            //std::cout << mtr->get_position() << std::endl;
+            pros::delay(10);
+        }
     }
     return;
     //MtrAccel(mtr,0,true);
@@ -294,8 +289,100 @@ void TareLift() {
 }
 
 void SetLift(int position) {
-    lift.move_absolute(position,60);
-    while (lift.get_position() < position) {
-        pros::delay(10);
+    if (position > lift.get_position()) {
+        lift.move_absolute(position,60);
+        while (lift.get_position() < position) {
+            pros::delay(10);
+        }
+    } else if (position < lift.get_position()) {
+        lift.move_absolute(position,-60);
+        while (lift.get_position() > position) {
+            pros::delay(10);
+        }
     }
+}
+
+void ArmSystem() {
+    //Main controller will be used when override is off and/or when the controller is not connect
+    if (MASTER_OVERRIDE || !partner.is_connected()) {
+        if (master.get_digital(DIGITAL_R1) == 1 && master.get_digital(DIGITAL_R2) == 0) {
+            //SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
+            if (!driveRunning) {
+                liftRunning = true;
+                if (!at90) {
+                    TareArm();
+                    at90 = true;
+                }
+            }
+        }
+        else if (master.get_digital(DIGITAL_R2) == 1 && master.get_digital(DIGITAL_R1) == 0) {
+            //SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
+            if (!driveRunning) {
+                liftRunning = true;
+                if (at90) {
+                    ReleaseArm(-2750);
+                    at90 = false;
+                }
+            }
+        /*} else if (master.get_digital(DIGITAL_X) == 1 && master.get_digital(DIGITAL_R1) == 0 && master.get_digital(DIGITAL_R2) == 0) {
+            if (!driveRunning) {
+                liftRunning = true;
+                MoveLift(&arm,-200);
+            }*/
+        } else {
+            liftRunning =false;
+        }
+    //partner controls
+    } else {
+        if (partner.get_digital(DIGITAL_R1) == 1 && partner.get_digital(DIGITAL_R2) == 0) {
+            //SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
+            if (!driveRunning) {
+                liftRunning = true;
+                if (!at90) {
+                    TareArm();
+                    at90 = true;
+                }
+            }
+        }
+        else if (partner.get_digital(DIGITAL_R2) == 1 && partner.get_digital(DIGITAL_R1) == 0) {
+            //SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
+            if (!driveRunning) {
+                liftRunning = true;
+                if (at90) {
+                    ReleaseArm(-2750);
+                    at90 = false;
+                }
+            }
+        /*} else if (master.get_digital(DIGITAL_X) == 1 && master.get_digital(DIGITAL_R1) == 0 && master.get_digital(DIGITAL_R2) == 0) {
+            if (!driveRunning) {
+                liftRunning = true;
+                MoveLift(&arm,-200);
+            }*/
+        } else {
+            liftRunning =false;
+        }
+    }
+    ManualArm();
+}
+
+void LiftSystem() {
+    //main controls
+    if (MASTER_OVERRIDE || !partner.is_connected()) {
+        if (master.get_digital(DIGITAL_A) == 1 && master.get_digital(DIGITAL_Y) == 0) {
+            //reset lift
+            TareLift();
+        } else if (master.get_digital(DIGITAL_Y) == 1 && master.get_digital(DIGITAL_A) == 0) {
+            SetLift(400);
+        } 
+    }
+    //partner controls 
+    else {
+        if (partner.get_digital(DIGITAL_L1) == 1 && partner.get_digital(DIGITAL_L2) == 0) {
+            //reset lift
+            TareLift();
+        } else if (partner.get_digital(DIGITAL_L2) == 1 && partner.get_digital(DIGITAL_L2) == 0) {
+            SetLift(400);
+        }
+    }
+    ManualLift();
 }
