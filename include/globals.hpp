@@ -58,7 +58,7 @@ extern bool intakeInward;
 extern bool driveRunning;
 extern bool liftRunning;
 
-const bool MASTER_OVERRIDE = true;
+extern bool MASTER_OVERRIDE;
 extern bool at90;
 
 #endif

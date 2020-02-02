@@ -32,11 +32,6 @@ void driveAccel(int speed[4]) {
 void pidStright(double distance, int speed) {
     using namespace std;
 
-	leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	rightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-
     leftFront.tare_position();
     rightFront.tare_position();
     leftBack.tare_position();
@@ -67,57 +62,69 @@ void pidStright(double distance, int speed) {
 
 void pidTurn(int degrees, int speed) {
     using namespace std;
-    int error;
+    int error, prevError, integral, derivative,output = 0;
     double kP = 0.6;
-    int spd[4];
+    double kI = 0.0;
+    double kD = 0.0;
+    //int spd[4];
     gyro.reset();
     pros::delay(1300);
 
     if (SignOf(degrees) > 0) { 
-        spd[0] = speed;
-        spd[1] = -speed;
-        spd[2] = speed;
-        spd[3] = -speed;
-        driveAccel(spd);
         while ( gyro.get_value() < degrees) {
             error = degrees - gyro.get_value();
-            error *= kP; 
-            if (error > speed) error = speed;
-            if (error < 40) error = 40;
-            leftFront.move_velocity(error);
-            rightFront.move_velocity(-error);
-            leftBack.move_velocity(error);
-            rightBack.move_velocity(-error);
+            //if (error < 40) error = 40;
+            integral += error;
+            if (error == 0 || error > degrees) {
+                integral = 0;
+            }
+            derivative = error -prevError;
+            output = error *kP + integral *kI + derivative *kD; 
+            if (output > speed) output = speed;
+            leftFront.move_velocity(output);
+            rightFront.move_velocity(-output);
+            leftBack.move_velocity(output);
+            rightBack.move_velocity(-output);
+            prevError = error;
             pros::delay(10);
         }
+        /*
         spd[0] = 0;
         spd[1] = 0;
         spd[2] = 0;
         spd[3] = 0;
         driveAccel(spd);
+        */
+       leftFront.move_velocity(0);
+       rightFront.move_velocity(0);
+       leftBack.move_velocity(0);
+       rightBack.move_velocity(0);
 
     } else if (SignOf(degrees) < 0) {
-        spd[0] = -speed;
+        /*spd[0] = -speed;
         spd[1] = speed;
         spd[2] = -speed;
         spd[3] = speed;
-        driveAccel(spd);
+        driveAccel(spd);*/
         while ( gyro.get_value() > degrees) {
             error = abs(degrees - gyro.get_value());
-            error *= kP; 
-            if (error > speed) error = speed;
-            if (error < 40) error = 40;
-            leftFront.move_velocity(-error);
-            rightFront.move_velocity(error);
-            leftBack.move_velocity(-error);
-            rightBack.move_velocity(error);
+            integral += error;
+            if (error == 0 || error > abs(degrees)) {
+                integral = 0;
+            }
+            derivative = error -prevError;
+            output = error *kP + integral *kI + derivative *kD; 
+            if (output > speed) output = speed;
+            leftFront.move_velocity(-output);
+            rightFront.move_velocity(output);
+            leftBack.move_velocity(-output);
+            rightBack.move_velocity(output);
             pros::delay(10);
         }
-        spd[0] = 0;
-        spd[1] = 0;
-        spd[2] = 0;
-        spd[3] = 0;
-        driveAccel(spd);
+       leftFront.move_velocity(0);
+       rightFront.move_velocity(0);
+       leftBack.move_velocity(0);
+       rightBack.move_velocity(0);
     }
 }
 
@@ -134,4 +141,19 @@ void TurnIntakeON(bool inwards) {
 void TurnIntakeOFF() {
     intakeLeft.move_velocity(0);
     intakeRight.move_velocity(0);
+}
+
+void pidLift(double distance, int speed) {
+    lift.tare_position();
+    if (SignOf(distance) == 1){
+        lift.move_absolute(calculateDistance(distance),speed);
+        while (lift.get_target_position() > lift.get_position()) {
+            pros::delay(10);
+        }
+    } else if (SignOf(distance) == -1) {
+        lift.move_absolute(calculateDistance(distance),-speed);
+        while (lift.get_target_position() < lift.get_position()) {
+            pros::delay(10);
+        }
+    }
 }

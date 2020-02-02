@@ -6,6 +6,11 @@ void Blue_Left_Goal() {
 }
 
 void Procedure() {
+    lift.set_brake_mode(MOTOR_BRAKE_HOLD);
+    leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	rightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
     int x,y;
     //ReleaseLift(&arm,-2750);
     //TareLift(&arm,&liftBtn);

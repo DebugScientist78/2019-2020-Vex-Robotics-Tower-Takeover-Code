@@ -13,31 +13,23 @@ void initialize() {
 	pros::lcd::register_btn1_cb(MoveAutoDown);
 	pros::lcd::register_btn2_cb(ConfirmAuto);
 
-	intakeLeft.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-    intakeRight.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-    pros::Motor leftFront(1,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
+	pros::Controller master(pros::E_CONTROLLER_MASTER);
+	pros::Controller partner(pros::E_CONTROLLER_PARTNER);
+
+	pros::Motor leftFront(1,MOTOR_GEARSET_18,false,MOTOR_ENCODER_DEGREES);
 	pros::Motor leftBack(2,MOTOR_GEARSET_18,false);
-    pros::Motor rightFront(3,MOTOR_GEARSET_18,true,MOTOR_ENCODER_COUNTS);
+	pros::Motor rightFront(3,MOTOR_GEARSET_18,true,MOTOR_ENCODER_DEGREES);
 	pros::Motor rightBack(4,MOTOR_GEARSET_18,true);
 
-	pros::ADIGyro gyro(1,1);
-
-	pros::Motor intakeLeft(6,MOTOR_GEARSET_36,false);
+	pros::Motor intakeLeft(9,MOTOR_GEARSET_36,false);
 	pros::Motor intakeRight(8,MOTOR_GEARSET_36,true);
 
-	pros::Motor arm(7,MOTOR_GEARSET_36,false,MOTOR_ENCODER_COUNTS);
+	pros::Motor arm(11,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
 
-	pros::Motor leftLift(11,MOTOR_GEARSET_36,false,MOTOR_ENCODER_COUNTS);
-	pros::Motor rightLift(12,MOTOR_GEARSET_36,true,MOTOR_ENCODER_COUNTS);
-
-	arm.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	leftLift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	rightLift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-
-	pros::ADIPotentiometer armPot(2);
-	armPot.calibrate();
+	pros::Motor lift(7,MOTOR_GEARSET_36,false,MOTOR_ENCODER_COUNTS);
 
 	pros::ADIDigitalIn liftBtn(3);
+	pros::ADIDigitalIn armBtn(4);
 	//pros::Motor tilter(8,MOTOR_GEARSET_18,false,MOTOR_ENCODER_COUNTS);
 	//DisplaySetup();
 	/*SlewArgs *MySlewArgs_leftOne = new SlewArgs();
@@ -62,7 +54,6 @@ void initialize() {
 	pros::Task SlewRightTwo(TaskSlew,(void*)MySlewArgs_rightTwo,"SlewRightTwo");*/
 	//AutonSelect();
 	//pros::delay(100);
-	//DisplaySetup();
 }
 
 /**
@@ -83,7 +74,7 @@ void disabled() {}
  */
 void competition_initialize() {
 	//AutonSelect();
-	ChooseAutoLEGACY();
+	//ChooseAutoLEGACY();
 }
 
 /**
@@ -125,30 +116,25 @@ void opcontrol() {
 	pros::Motor rightFront(3);
 	pros::Motor rightBack(4);
 
-	pros::Motor intakeLeft(5);
-	pros::Motor intakeRight(6);
+	pros::Motor intakeLeft(6);
+	pros::Motor intakeRight(8);
 
-	pros::Motor arm(7);
-
-	pros::Motor leftLift(11);
-	pros::Motor rightLift(12);
+	pros::Motor arm(11);
+	pros::Motor lift(7);
 
 	pros::ADIPotentiometer armPos(2);
 	pros::ADIDigitalIn liftBtn(3);
 	//pros::Motor tilter(8);
 
-
-	intakeLeft.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	intakeRight.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-
-	arm.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-
-	//uint32_t now = pros::millis();
+	//uint32_t now = pros::millis(); 
 	//pros::Task intakeTask(Intake,NULL,TASK_PRIORITY_DEFAULT,TASK_STACK_DEPTH_DEFAULT,"intake Task");
 	while (true) {
-		ArmSystem();
-
-		LiftSystem();
+		//std::cout << MASTER_OVERRIDE << std::endl;
+		masterSwitch();
+		//ArmSystem();
+		ManualArm();
+		//LiftSystem();
+		ManualLift();
 
 		Drive();
 
@@ -156,5 +142,5 @@ void opcontrol() {
 
 		pros::delay(10);
 	}
-	CleanPointers();
+	//CleanPointers();
 }
