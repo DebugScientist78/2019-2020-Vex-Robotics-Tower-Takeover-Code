@@ -40,8 +40,6 @@
  * You should add more #includes here
  */
 #include "controls.h"
-#include "display.h"
-#include "auton.h"
 #include "pros/api_legacy.h"
 
 /**
@@ -82,7 +80,7 @@ void opcontrol(void);
 #include "LLEMU.hpp"
 #include "auto.hpp"
 #include "okapi/api.hpp"
-#include "odom.hpp"
+//#include "odom.hpp"
 #endif
 
 #endif  // _PROS_MAIN_H_

@@ -8,102 +8,6 @@ int SignOf(int x) {
     if (x<0) return -1;
     return 0;
 }
-/*
-The function iteratively accelerates the motor's speed to the requested speed
-its done it incrments over delta_time ms, creating linear accleration 
-Depending on if the bot is in driver or autonomous mode,
-it will output voltage, or velocity
-*/
-void MtrAccel(pros::Motor* mtr,int speed, bool useVel) {
-    using namespace std;
-    double ratio;
-    int deltaSpd;
-    int currentSpd;
-    int velIncrement;
-
-    if (!useVel) {
-        //driver setup
-        double ratio = 127/mtr->get_voltage_limit();
-        int currentSpd = int(round(mtr->get_voltage()*ratio));
-        if(abs(speed - currentSpd) < increment) {mtr->move(speed);return;}
-    } else {
-        //auton setup
-        if (mtr->get_gearing() == MOTOR_GEARSET_06) {
-            velIncrement = 100;
-        } else if (mtr->get_gearing() == MOTOR_GEARSET_18) {
-            velIncrement = 33;
-        } else {
-            velIncrement = 17;
-        }
-        int currentSpd = int(round(mtr->get_actual_velocity()));
-        if(abs(speed - currentSpd) < velIncrement) {mtr->move_velocity(speed);return;}
-    }
-
-    while (currentSpd != speed) {
-        if (!useVel) {
-            currentSpd = int(round(mtr->get_voltage()*ratio));
-        } else {
-            currentSpd = int(round(mtr->get_actual_velocity()));
-        }
-        if (DEBUG) cout << "current Speed of Motor: " << currentSpd << endl;
-        deltaSpd = speed - currentSpd;
-        if (abs(deltaSpd) > increment) {
-            if (!useVel) {
-                currentSpd += increment * SignOf(deltaSpd);
-            } else {
-                currentSpd += velIncrement * SignOf(deltaSpd);
-            }
-        } else {
-            currentSpd = speed;
-        }
-        if (!useVel) {
-            mtr->move(currentSpd);
-        } else {
-            mtr->move_velocity(currentSpd);
-        }
-        pros::delay(delta_time);
-    }
-    if (speed == 0) mtr->move_velocity(0);
-}
-
-/*void SetLiftPos(pros::Motor *mtr, pros::ADIPotentiometer* poti, int target, int speedMax) {
-    using namespace std;
-
-    uint32_t now = pros::millis();
-    bool pass;
-    bool gain;
-    int deltaPos = 0;
-    const double kP = 0.05;
-    int currentPos = poti->get_value_calibrated_HR();
-
-    if (currentPos == target) {
-        pass = true;
-    } else {
-        MtrAccel(mtr,speedMax,true);
-        pass = false;
-        if (currentPos < target) {
-            gain = true;
-        } else {
-            gain = false;
-        }
-    }
-    while (!pass) {
-        if (gain) {
-            pass = (currentPos >= target);
-        } else {
-            pass = (currentPos <= target);
-        }
-
-        currentPos = poti->get_value_calibrated_HR();
-        deltaPos = floor((target - currentPos)*kP);
-        if (abs(deltaPos) > speedMax) deltaPos = speedMax*SignOf(deltaPos);
-        if (abs(deltaPos) < LIFT_MIN_SPEED) deltaPos = LIFT_MIN_SPEED*SignOf(deltaPos);
-        mtr->move(deltaPos);
-        pros::Task::delay_until(&now,delta_time);
-    }
-
-    MtrAccel(mtr,0,true);
-}*/
 
 void Drive() {
     using namespace std;
@@ -119,6 +23,7 @@ void Drive() {
     //start = mtrs[0].get_position();
 
     int fwd, rot, side;
+    int accel_Speed;
     int reqSpd[4];
     int actSpd[4];
     int deltaSpd[4];
@@ -136,11 +41,13 @@ void Drive() {
     /********************/
     if (LogSpeed(abs(left_y)) > DEADBAND && LogSpeed(abs(right_x)) < DEADBAND) {
         fwd = LogSpeed(left_y)*.8;
+        accel_Speed = 20;
     } else {
         fwd = 0;
     }
     if (LogSpeed(abs(right_x)) > DEADBAND && LogSpeed(abs(left_y)) < DEADBAND) {
         rot = LogSpeed(right_x)*.6;
+        accel_Speed = 10;
     }
     else {
         rot = 0;
@@ -161,8 +68,8 @@ void Drive() {
     for (int i = 0; i < 4; i++) {
         actSpd[i] = round(mtrs[i].get_voltage()*0.010583);
         deltaSpd[i] = reqSpd[i]-actSpd[i];
-        if (abs(deltaSpd[i]) > 15) {
-            actSpd[i] += 15 * SignOf(deltaSpd[i]);
+        if (abs(deltaSpd[i]) > accel_Speed) {
+            actSpd[i] += accel_Speed * SignOf(deltaSpd[i]);
         } else {
             actSpd[i] = reqSpd[i];
         }
@@ -174,27 +81,27 @@ void Drive() {
    // pros::lcd::set_text(0,to_string(round(end-start)));
 }
 
-void TareArm() {
+void TareTilter() {
     //MtrAccel(mtr,50,true);
-    arm.move_velocity(80);
-    while (armBtn.get_value() == 0) {
+    titler.move_velocity(100);
+    while (tilterBtn.get_value() == 0) {
         pros::delay(10);
     }
     //MtrAccel(mtr,0,true);
-    arm.move_velocity(0);
-    arm.tare_position();
+    titler.move_velocity(0);
+    titler.tare_position();
 }
 
-void ReleaseArm(int target) {
+void ReleaseTilter(int target) {
     //MtrAccel(mtr,LIFT_MAX_SPEED,true);
-    if (target > arm.get_position()) {
-        arm.move_absolute(target,60);
-        while (arm.get_position() < target) {
+    if (target > titler.get_position()) {
+        titler.move_absolute(target,60);
+        while (titler.get_position() < target) {
             pros::delay(10);
         }
-    } else if (target < arm.get_position()) {
-        arm.move_absolute(target,-60);
-        while (arm.get_position() > target) {
+    } else if (target < titler.get_position()) {
+        titler.move_absolute(target,-60);
+        while (titler.get_position() > target) {
             //std::cout << mtr->get_position() << std::endl;
             pros::delay(10);
         }
@@ -204,17 +111,17 @@ void ReleaseArm(int target) {
     //mtr->move_velocity(0);
 }
 
-void ManualArm() {
+void ManualTilter() {
     if (master.get_digital(DIGITAL_R2) == 1) {
-        lift.set_brake_mode(MOTOR_BRAKE_BRAKE);
-        arm.move_velocity(-50);
+        arm.set_brake_mode(MOTOR_BRAKE_BRAKE);
+        titler.move_velocity(-100);
     }
     else if (master.get_digital(DIGITAL_R1) ==1) {
-        lift.set_brake_mode(MOTOR_BRAKE_BRAKE);
-        arm.move_velocity(30);
+        arm.set_brake_mode(MOTOR_BRAKE_BRAKE);
+        titler.move_velocity(100);
     } else {
-        lift.set_brake_mode(MOTOR_BRAKE_HOLD);
-        arm.move_velocity(0);
+        arm.set_brake_mode(MOTOR_BRAKE_HOLD);
+        titler.move_velocity(0);
     }
 }
 
@@ -222,12 +129,12 @@ void Intake() {
     //std::cout << (partner.is_connected() && !MASTER_OVERRIDE) << std::endl;
     if (partner.is_connected()) {
         if (partner.get_digital(DIGITAL_L2) ==1 && partner.get_digital(DIGITAL_L1) ==0) {
-            intakeLeft.move_velocity(-100);
-            intakeRight.move_velocity(-100);
+            intakeLeft.move_velocity(-200);
+            intakeRight.move_velocity(-200);
         }
         else if (partner.get_digital(DIGITAL_L1) ==1 && partner.get_digital(DIGITAL_L2) ==0) {
-            intakeLeft.move_velocity(100);
-            intakeRight.move_velocity(100);
+            intakeLeft.move_velocity(200);
+            intakeRight.move_velocity(200);
         }
         else if (master.get_digital(DIGITAL_L2) ==1) {
             intakeLeft.move_velocity(-40);
@@ -255,93 +162,93 @@ int LogSpeed(int rawSpeed) {
     return (rawSpeed*rawSpeed) / (127*SignOf(rawSpeed));
 }
 
-void ManualLift() {
+void ManualArm() {
     if (partner.is_connected()) {
         if (partner.get_digital(DIGITAL_R1) == 1) {
-            arm.move_velocity(50);
-            lift.move_velocity(50);
+            titler.move_velocity(100);
+            arm.move_velocity(80);
         } else if (partner.get_digital(DIGITAL_R2) == 1) {
-            arm.move_velocity(-50);
-            lift.move_velocity(-50);
+            titler.move_velocity(-100);
+            arm.move_velocity(-80);
         } else {
-            lift.move_velocity(0);
+            arm.move_velocity(0);
         }
     } else {
         if (master.get_digital(DIGITAL_A) == 1) {
-            arm.set_brake_mode(MOTOR_BRAKE_BRAKE);
-            arm.move_velocity(30);
-            lift.move_velocity(50);
+            titler.set_brake_mode(MOTOR_BRAKE_BRAKE);
+            titler.move_velocity(80);
+            arm.move_velocity(100);
         } else if (master.get_digital(DIGITAL_Y) == 1) {
-            arm.set_brake_mode(MOTOR_BRAKE_BRAKE);
-            arm.move_velocity(-30);
-            lift.move_velocity(-50);
+            titler.set_brake_mode(MOTOR_BRAKE_BRAKE);
+            titler.move_velocity(-80);
+            arm.move_velocity(-100);
         } else {
-            arm.set_brake_mode(MOTOR_BRAKE_HOLD);
-            lift.move_velocity(0);
+            titler.set_brake_mode(MOTOR_BRAKE_HOLD);
+            arm.move_velocity(0);
         }
     }
 }
 
-void TareLift() {
-    lift.move_velocity(-80);
-    while(liftBtn.get_value() == 0) {
+void TareArm() {
+    arm.move_velocity(-80);
+    while(armBtn.get_value() == 0) {
         pros::delay(10);
     }
-    lift.move_velocity(0);
-    lift.tare_position();
+    arm.move_velocity(0);
+    arm.tare_position();
 }
 
-void SetLift(int position) {
-    if (position > lift.get_position()) {
-        lift.move_absolute(position,60);
-        while (lift.get_position() < position) {
+void SetArm(int position) {
+    if (position > arm.get_position()) {
+        arm.move_absolute(position,60);
+        while (arm.get_position() < position) {
             pros::delay(10);
         }
-    } else if (position < lift.get_position()) {
-        lift.move_absolute(position,-60);
-        while (lift.get_position() > position) {
+    } else if (position < arm.get_position()) {
+        arm.move_absolute(position,-60);
+        while (arm.get_position() > position) {
             pros::delay(10);
         }
     }
 }
 
-void ArmSystem() {
+void TilterSystem() {
     //Main controller will be used when override is off and/or when the controller is not connect
     if (MASTER_OVERRIDE || !partner.is_connected()) {
         if (master.get_digital(DIGITAL_R1) == 1 && master.get_digital(DIGITAL_R2) == 0) {
             //SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
-            lift.set_brake_mode(MOTOR_BRAKE_BRAKE);
+            arm.set_brake_mode(MOTOR_BRAKE_BRAKE);
             if (!driveRunning) {
                 liftRunning = true;
                 if (!at90) {
-                    TareArm();
+                    TareTilter();
                     at90 = true;
                 }
             }
         }
-        else if (master.get_digital(DIGITAL_R2) == 1 && master.get_digital(DIGITAL_R1) == 0) {
+        /*else if (master.get_digital(DIGITAL_R2) == 1 && master.get_digital(DIGITAL_R1) == 0) {
             //SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
-            lift.set_brake_mode(MOTOR_BRAKE_BRAKE);
+            arm.set_brake_mode(MOTOR_BRAKE_BRAKE);
             if (!driveRunning) {
                 liftRunning = true;
                 if (at90) {
-                    ReleaseArm(-2750);
+                    ReleaseTilter(-2750);
                     at90 = false;
                 }
-            }
+            }*/
         /*} else if (master.get_digital(DIGITAL_X) == 1 && master.get_digital(DIGITAL_R1) == 0 && master.get_digital(DIGITAL_R2) == 0) {
             if (!driveRunning) {
                 liftRunning = true;
                 MoveLift(&arm,-200);
-            }*/
-        } else {
+            }
+        }*/ else {
             liftRunning =false;
         }
     //partner controls
     } else {
         if (partner.get_digital(DIGITAL_R1) == 1 && partner.get_digital(DIGITAL_R2) == 0) {
             //SetLiftPos(&arm,&armPos,POT_AT_90,LIFT_MAX_SPEED);
-            lift.set_brake_mode(MOTOR_BRAKE_BRAKE);
+            arm.set_brake_mode(MOTOR_BRAKE_BRAKE);
             if (!driveRunning) {
                 liftRunning = true;
                 if (!at90) {
@@ -350,13 +257,13 @@ void ArmSystem() {
                 }
             }
         }
-        else if (partner.get_digital(DIGITAL_R2) == 1 && partner.get_digital(DIGITAL_R1) == 0) {
+        /*else if (partner.get_digital(DIGITAL_R2) == 1 && partner.get_digital(DIGITAL_R1) == 0) {
             //SetLiftPos(&arm,&armPos,POT_AT_45,LIFT_MAX_SPEED);
-            lift.set_brake_mode(MOTOR_BRAKE_BRAKE);
+            arm.set_brake_mode(MOTOR_BRAKE_BRAKE);
             if (!driveRunning) {
                 liftRunning = true;
                 if (at90) {
-                    ReleaseArm(-2750);
+                    ReleaseTilter(-2750);
                     at90 = false;
                 }
             }
@@ -365,33 +272,33 @@ void ArmSystem() {
                 liftRunning = true;
                 MoveLift(&arm,-200);
             }*/
-        } else {
+         else {
             liftRunning =false;
         }
     }
-    ManualArm();
+    ManualTilter();
 }
 
-void LiftSystem() {
+void ArmSystem() {
     //main controls
     if (MASTER_OVERRIDE || !partner.is_connected()) {
         if (master.get_digital(DIGITAL_A) == 1 && master.get_digital(DIGITAL_Y) == 0) {
             //reset lift
-            TareLift();
-        } else if (master.get_digital(DIGITAL_Y) == 1 && master.get_digital(DIGITAL_A) == 0) {
-            SetLift(400);
+            TareArm();
+        //} else if (master.get_digital(DIGITAL_Y) == 1 && master.get_digital(DIGITAL_A) == 0) {
+          //  SetArm(400);
         } 
     }
     //partner controls 
     else {
         if (partner.get_digital(DIGITAL_L1) == 1 && partner.get_digital(DIGITAL_L2) == 0) {
             //reset lift
-            TareLift();
-        } else if (partner.get_digital(DIGITAL_L2) == 1 && partner.get_digital(DIGITAL_L2) == 0) {
-            SetLift(400);
-        }
+            TareArm();
+        } //else if (partner.get_digital(DIGITAL_L2) == 1 && partner.get_digital(DIGITAL_L2) == 0) {
+           // SetArm(400);
+        //}
     }
-    ManualLift();
+    ManualArm();
 }
 
 void masterSwitch() {

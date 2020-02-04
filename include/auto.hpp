@@ -1,6 +1,13 @@
 #ifndef AUTO_HPP
 #define AUTO_HPP
-#include "main.h"
+
+enum AutonMode {
+    RED_LEFT_GOAL = 1,
+    RED_RIGHT_GOAL, 
+    BLUE_LEFT_GOAL,
+    BLUE_RIGHT_GOAL,
+    SKILLS = 0x0A
+};
 
 int calculateDistance(double inches);
 

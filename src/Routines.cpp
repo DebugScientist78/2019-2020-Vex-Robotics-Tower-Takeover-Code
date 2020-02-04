@@ -1,50 +1,42 @@
 #include "main.h"
 #include "globals.hpp"
 
-void Blue_Left_Goal() {
-    
-}
-
 void Procedure() {
-    lift.set_brake_mode(MOTOR_BRAKE_HOLD);
-    leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	rightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-    int x,y;
-    //ReleaseLift(&arm,-2750);
-    //TareLift(&arm,&liftBtn);
-    //TurnIntakeON(false);
-    //pros::delay(1000);
-    //TurnIntakeOFF();
+    using namespace okapi;
+    auto drive = ChassisControllerBuilder()
+        .withMotors({1,2},{-3,-4})
+        .withDimensions(AbstractMotor::gearset::green,{{3.25_in,10.5_in},okapi::imev5GreenTPR})
+        .withOdometry()
+        .buildOdometry();
+    
+    auto tilter = AsyncPosControllerBuilder()
+        .withMotor(11)
+        .build();
 
+    auto arm = AsyncPosControllerBuilder()
+        .withMotor(7)
+        .build();
+
+    auto intake = AsyncVelControllerBuilder()
+        .withMotor({6,-8})
+        .build();
 
     if (autoMode == BLUE_LEFT_GOAL) {
-        //TurnIntakeON(true);
-        //pros::delay(100);
-        pidStright(-36,90);
-        //TurnIntakeOFF();
-        pidStright(24,90);
+        drive->setMaxVelocity(100);
+        drive->moveDistanceAsync(30_in);
+        intake->setTarget(200);
+        drive->waitUntilSettled();
+        intake->waitUntilSettled();
 
-        
-        /*pidTurn(900,80);
-        pidStright(25,120);
-        pidTurn(-900,80);
+        drive->moveDistance(-24_in);
+        drive->turnAngle(135_deg);
+        drive->moveDistance(10_in);
 
-        ReleaseLift(&arm,-2000);
-        pidStright(-y,120);
-        TareLift(&arm,&liftBtn);*/
+        tilter->setTarget(-2000);
+
+
     } else if (autoMode == RED_RIGHT_GOAL) {
-        TurnIntakeON(true);
-        pidStright(x,120);
-        TurnIntakeOFF();
-        pidStright(-x,120);
 
-        pidTurn(900,100);
-        pidStright(y,120);
-        ReleaseArm(-2000);
-        pidStright(-y,120);
-        TareArm();
     } else if (autoMode == BLUE_RIGHT_GOAL) {
         
     }

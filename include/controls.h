@@ -7,16 +7,16 @@ static const int DEADBAND = 20;
 
 static const bool DEBUG = false;
 
-void TareArm();
-void ReleaseArm(int target);
-void ManualArm();
+void TareTilter();
+void ReleaseTilter(int target);
+void ManualTilter();
 void Intake();
 void Drive();
-void ManualLift();
-void TareLift();
-void SetLift(int position);
+void ManualArm();
+void TareArm();
+void SetArm(int position);
 
-void LiftSystem();
+void TilterSystem();
 void ArmSystem();
 
 int LogSpeed(int rawSpeed);
